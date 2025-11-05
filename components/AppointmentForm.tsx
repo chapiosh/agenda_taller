@@ -45,7 +45,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       alert('Por favor, completa todos los campos.');
       return;
     }
-    const date = `${dateValue}T${timeValue}`;
+    const localDateTime = new Date(`${dateValue}T${timeValue}`);
+    const date = localDateTime.toISOString();
     onSave({ customerName, vehicle, service, date, contact, tags: appointmentToEdit?.tags }, appointmentToEdit?.id);
   };
 

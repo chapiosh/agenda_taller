@@ -1,0 +1,5 @@
+{
+  "name": "Mechanic Appointment Manager",
+  "description": "A web application to efficiently manage appointments for a mechanical workshop. Users can add, view, complete, and delete appointments. It leverages AI to help generate professional service descriptions from customer requests.",
+  "requestFramePermissions": []
+}

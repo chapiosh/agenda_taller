@@ -8,7 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export const getAppointments = async (): Promise<Appointment[]> => {
   const { data, error } = await supabase
     .from('appointments')
-    .select('*')
+    .select('id, customer_name, vehicle, service, contact, status, tags, to_char(date, \'YYYY-MM-DD"T"HH24:MI:SS\') as date')
     .order('date', { ascending: true });
 
   if (error) {
@@ -29,69 +29,64 @@ export const getAppointments = async (): Promise<Appointment[]> => {
 };
 
 export const createAppointment = async (data: Omit<Appointment, 'id' | 'status'>): Promise<Appointment> => {
-  const { data: newAppointment, error } = await supabase
-    .from('appointments')
-    .insert([
-      {
-        customer_name: data.customerName,
-        vehicle: data.vehicle,
-        service: data.service,
-        date: data.date,
-        contact: data.contact,
-        status: AppointmentStatus.Scheduled,
-        tags: data.tags || [],
-      },
-    ])
-    .select()
-    .single();
+  console.log('Creating appointment with date:', data.date);
+  const { data: result, error } = await supabase.rpc('rpc_create_appointment', {
+    p_customer_name: data.customerName,
+    p_vehicle: data.vehicle,
+    p_service: data.service,
+    p_date: data.date,
+    p_contact: data.contact,
+    p_tags: data.tags || [],
+  });
 
   if (error) {
     console.error('Error creating appointment:', error);
     throw error;
   }
 
+  console.log('Created appointment returned:', result);
+
   return {
-    id: newAppointment.id,
-    customerName: newAppointment.customer_name,
-    vehicle: newAppointment.vehicle,
-    service: newAppointment.service,
-    date: newAppointment.date,
-    contact: newAppointment.contact,
-    status: newAppointment.status as AppointmentStatus,
-    tags: newAppointment.tags || [],
+    id: result.id,
+    customerName: result.customer_name,
+    vehicle: result.vehicle,
+    service: result.service,
+    date: result.date,
+    contact: result.contact,
+    status: result.status as AppointmentStatus,
+    tags: result.tags || [],
   };
 };
 
 export const updateAppointment = async (updatedData: Appointment): Promise<Appointment> => {
-  const { data, error } = await supabase
-    .from('appointments')
-    .update({
-      customer_name: updatedData.customerName,
-      vehicle: updatedData.vehicle,
-      service: updatedData.service,
-      date: updatedData.date,
-      contact: updatedData.contact,
-      status: updatedData.status,
-      tags: updatedData.tags || [],
-    })
-    .eq('id', updatedData.id)
-    .select()
-    .single();
+  console.log('Updating appointment with date:', updatedData.date);
+  const { data: result, error } = await supabase.rpc('rpc_update_appointment', {
+    p_id: updatedData.id,
+    p_customer_name: updatedData.customerName,
+    p_vehicle: updatedData.vehicle,
+    p_service: updatedData.service,
+    p_date: updatedData.date,
+    p_contact: updatedData.contact,
+    p_status: updatedData.status,
+    p_tags: updatedData.tags || [],
+  });
 
   if (error) {
     console.error('Error updating appointment:', error);
     throw error;
   }
 
+  console.log('Updated appointment returned:', result);
+
   return {
-    id: data.id,
-    customerName: data.customer_name,
-    vehicle: data.vehicle,
-    service: data.service,
-    date: data.date,
-    contact: data.contact,
-    status: data.status as AppointmentStatus,
-    tags: data.tags || [],
+    id: result.id,
+    customerName: result.customer_name,
+    vehicle: result.vehicle,
+    service: result.service,
+    date: result.date,
+    contact: result.contact,
+    status: result.status as AppointmentStatus,
+    tags: result.tags || [],
   };
 };
 

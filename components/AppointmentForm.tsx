@@ -13,7 +13,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
   const [customerName, setCustomerName] = useState('');
   const [vehicle, setVehicle] = useState('');
   const [service, setService] = useState('');
-  const [date, setDate] = useState('');
+  const [dateValue, setDateValue] = useState('');
+  const [timeValue, setTimeValue] = useState('');
   const [contact, setContact] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -22,17 +23,18 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       setCustomerName(appointmentToEdit.customerName);
       setVehicle(appointmentToEdit.vehicle);
       setService(appointmentToEdit.service);
-      // Format date for datetime-local input
       const localDate = new Date(appointmentToEdit.date);
       localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
-      setDate(localDate.toISOString().slice(0, 16));
+      const isoString = localDate.toISOString();
+      setDateValue(isoString.slice(0, 10));
+      setTimeValue(isoString.slice(11, 16));
       setContact(appointmentToEdit.contact);
     } else {
-      // Reset form for new appointment
       setCustomerName('');
       setVehicle('');
       setService('');
-      setDate('');
+      setDateValue('');
+      setTimeValue('');
       setContact('');
     }
   }, [appointmentToEdit]);
@@ -40,10 +42,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !vehicle || !service || !date || !contact) {
+    if (!customerName || !vehicle || !service || !dateValue || !timeValue || !contact) {
       alert('Por favor, completa todos los campos.');
       return;
     }
+    const date = `${dateValue}T${timeValue}`;
     onSave({ customerName, vehicle, service, date, contact }, appointmentToEdit?.id);
   };
 
@@ -110,16 +113,29 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
         </button>
       </div>
 
-       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-gray-700">Fecha y Hora</label>
-        <input
-          type="datetime-local"
-          id="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"
-          required
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700">Fecha</label>
+          <input
+            type="date"
+            id="date"
+            value={dateValue}
+            onChange={(e) => setDateValue(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="time" className="block text-sm font-medium text-gray-700">Hora</label>
+          <input
+            type="time"
+            id="time"
+            value={timeValue}
+            onChange={(e) => setTimeValue(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-brand-blue focus:border-brand-blue sm:text-sm"
+            required
+          />
+        </div>
       </div>
 
       <div>

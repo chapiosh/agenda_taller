@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Appointment, AppointmentStatus } from './types';
+import { Appointment, AppointmentStatus, AppointmentTag } from './types';
 import Header from './components/Header';
 import AppointmentList from './components/AppointmentList';
 import AppointmentForm from './components/AppointmentForm';
 import Modal from './components/Modal';
 import CalendarView from './components/CalendarView';
+import TagCompletionModal from './components/TagCompletionModal';
 import { PlusIcon } from './components/icons/PlusIcon';
 import { CalendarIcon } from './components/icons/CalendarIcon';
 import { ListBulletIcon } from './components/icons/ListBulletIcon';
@@ -18,6 +19,8 @@ const App: React.FC = () => {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [appointmentToComplete, setAppointmentToComplete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -55,20 +58,56 @@ const App: React.FC = () => {
     const appointment = appointments.find(app => app.id === id);
     if (!appointment) return;
 
+    if (appointment.status === AppointmentStatus.Completed) {
+      const updatedAppointmentData: Appointment = {
+        ...appointment,
+        status: AppointmentStatus.Scheduled,
+        tags: [],
+      };
+
+      try {
+        const updatedAppointment = await apiService.updateAppointment(updatedAppointmentData);
+        setAppointments(appointments.map(app =>
+          app.id === id ? updatedAppointment : app
+        ));
+      } catch(error) {
+        console.error("Failed to update appointment status:", error);
+        alert("No se pudo actualizar el estado de la cita.");
+      }
+    } else {
+      setAppointmentToComplete(id);
+      setIsTagModalOpen(true);
+    }
+  };
+
+  const handleConfirmCompletion = async (tag: AppointmentTag) => {
+    if (!appointmentToComplete) return;
+
+    const appointment = appointments.find(app => app.id === appointmentToComplete);
+    if (!appointment) return;
+
     const updatedAppointmentData: Appointment = {
       ...appointment,
-      status: appointment.status === AppointmentStatus.Completed ? AppointmentStatus.Scheduled : AppointmentStatus.Completed
+      status: AppointmentStatus.Completed,
+      tags: [tag],
     };
 
     try {
-        const updatedAppointment = await apiService.updateAppointment(updatedAppointmentData);
-        setAppointments(appointments.map(app => 
-          app.id === id ? updatedAppointment : app
-        ));
+      const updatedAppointment = await apiService.updateAppointment(updatedAppointmentData);
+      setAppointments(appointments.map(app =>
+        app.id === appointmentToComplete ? updatedAppointment : app
+      ));
+      setIsTagModalOpen(false);
+      setAppointmentToComplete(null);
     } catch(error) {
-        console.error("Failed to update appointment status:", error);
-        alert("No se pudo actualizar el estado de la cita.");
+      console.error("Failed to complete appointment:", error);
+      alert("No se pudo completar la cita.");
     }
+  };
+
+  const handleCancelCompletion = () => {
+    setIsTagModalOpen(false);
+    setAppointmentToComplete(null);
   };
 
   const handleDeleteAppointment = async (id: string) => {
@@ -184,12 +223,18 @@ const App: React.FC = () => {
       </button>
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <AppointmentForm 
-            onSave={handleSaveAppointment} 
+        <AppointmentForm
+            onSave={handleSaveAppointment}
             appointmentToEdit={editingAppointment}
             onClose={closeModal}
         />
       </Modal>
+
+      <TagCompletionModal
+        isOpen={isTagModalOpen}
+        onConfirm={handleConfirmCompletion}
+        onCancel={handleCancelCompletion}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { CheckIcon } from './icons/CheckIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { UndoIcon } from './icons/UndoIcon';
 import { PencilIcon } from './icons/PencilIcon';
+import { parseLocalDate } from '../utils/dateUtils';
 
 const TAG_COLORS: Record<AppointmentTag, string> = {
   'asistió': 'bg-green-100 text-green-800 border-green-300',
@@ -26,13 +27,13 @@ const AppointmentItem: React.FC<AppointmentItemProps> = ({ appointment, onToggle
   const isCompleted = appointment.status === AppointmentStatus.Completed;
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('es-ES', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const date = parseLocalDate(dateString);
+    return date.toLocaleString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 

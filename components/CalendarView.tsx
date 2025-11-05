@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Appointment, AppointmentStatus } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import { parseLocalDate, isSameDay } from '../utils/dateUtils';
 
 interface CalendarViewProps {
   appointments: Appointment[];
@@ -35,11 +36,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, onEditAppoint
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
   
-  const isSameDay = (d1: Date, d2: Date) => {
-    const date1 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
-    const date2 = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
-    return date1.getTime() === date2.getTime();
-  };
 
   const today = new Date();
 
@@ -59,7 +55,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, onEditAppoint
         {calendarDays.map((date, index) => {
           const isCurrentMonth = date.getMonth() === currentDate.getMonth();
           const isToday = isSameDay(date, today);
-          const appointmentsForDay = appointments.filter(app => isSameDay(new Date(app.date), date));
+          const appointmentsForDay = appointments.filter(app => isSameDay(parseLocalDate(app.date), date));
 
           return (
             <div key={index} className={`border rounded-md min-h-[120px] p-1.5 flex flex-col ${isCurrentMonth ? 'bg-white' : 'bg-gray-50'}`}>

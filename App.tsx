@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Appointment, AppointmentStatus, AppointmentTag } from './types';
+import { parseLocalDate } from './utils/dateUtils';
 import Header from './components/Header';
 import AppointmentList from './components/AppointmentList';
 import AppointmentForm from './components/AppointmentForm';
@@ -48,7 +49,7 @@ const App: React.FC = () => {
         } else {
           // Add new appointment
           const newAppointment = await apiService.createAppointment(appointmentData);
-          setAppointments(prev => [...prev, newAppointment].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+          setAppointments(prev => [...prev, newAppointment].sort((a, b) => parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime()));
         }
         closeModal();
     } catch(error) {
@@ -148,7 +149,7 @@ const App: React.FC = () => {
     if (!matchesSearch) return false;
 
     if (selectedDate) {
-      const appointmentDate = new Date(appointment.date);
+      const appointmentDate = parseLocalDate(appointment.date);
       const [filterYear, filterMonth, filterDay] = selectedDate.split('-').map(Number);
 
       return appointmentDate.getFullYear() === filterYear &&
@@ -165,7 +166,7 @@ const App: React.FC = () => {
   const handleCopyTodayAppointments = async () => {
     const today = new Date();
     const todayAppointments = appointments.filter(app => {
-      const appDate = new Date(app.date);
+      const appDate = parseLocalDate(app.date);
       return appDate.getFullYear() === today.getFullYear() &&
              appDate.getMonth() === today.getMonth() &&
              appDate.getDate() === today.getDate() &&
@@ -177,7 +178,7 @@ const App: React.FC = () => {
       return;
     }
 
-    todayAppointments.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    todayAppointments.sort((a, b) => parseLocalDate(a.date).getTime() - parseLocalDate(b.date).getTime());
 
     const formattedDate = today.toLocaleDateString('es-ES', {
       weekday: 'long',
@@ -190,7 +191,7 @@ const App: React.FC = () => {
     message += `Total de vehículos a recibir: *${todayAppointments.length}*\n\n`;
 
     todayAppointments.forEach((app, index) => {
-      const time = new Date(app.date).toLocaleTimeString('es-ES', {
+      const time = parseLocalDate(app.date).toLocaleTimeString('es-ES', {
         hour: '2-digit',
         minute: '2-digit'
       });

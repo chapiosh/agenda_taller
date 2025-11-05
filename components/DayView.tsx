@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Appointment, AppointmentStatus } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
+import { parseLocalDate, isSameDay } from '../utils/dateUtils';
 
 interface DayViewProps {
   appointments: Appointment[];
@@ -29,19 +30,13 @@ const DayView: React.FC<DayViewProps> = ({ appointments, onEditAppointment }) =>
     setCurrentDate(new Date());
   };
 
-  const isSameDay = (d1: Date, d2: Date) => {
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
-  };
-
   const appointmentsForDay = appointments.filter(app =>
-    isSameDay(new Date(app.date), currentDate)
+    isSameDay(parseLocalDate(app.date), currentDate)
   );
 
   const getAppointmentsForHour = (hour: number) => {
     return appointmentsForDay.filter(app => {
-      const appDate = new Date(app.date);
+      const appDate = parseLocalDate(app.date);
       return appDate.getHours() === hour;
     });
   };
@@ -132,7 +127,7 @@ const DayView: React.FC<DayViewProps> = ({ appointments, onEditAppointment }) =>
                             </div>
                             <div className="ml-3">
                               <span className="text-xs font-medium text-gray-500">
-                                {new Date(app.date).toLocaleTimeString('es-ES', {
+                                {parseLocalDate(app.date).toLocaleTimeString('es-ES', {
                                   hour: '2-digit',
                                   minute: '2-digit'
                                 })}

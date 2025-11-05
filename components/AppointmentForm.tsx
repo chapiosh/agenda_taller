@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Appointment } from '../types';
 import { generateServiceDescription } from '../services/geminiService';
 import { SparklesIcon } from './icons/SparklesIcon';
+import { parseLocalDate, formatDateForInput } from '../utils/dateUtils';
 
 interface AppointmentFormProps {
   onSave: (appointment: Omit<Appointment, 'id' | 'status'>, id?: string) => void;
@@ -23,14 +24,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       setCustomerName(appointmentToEdit.customerName);
       setVehicle(appointmentToEdit.vehicle);
       setService(appointmentToEdit.service);
-      const date = new Date(appointmentToEdit.date);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      setDateValue(`${year}-${month}-${day}`);
-      setTimeValue(`${hours}:${minutes}`);
+      const date = parseLocalDate(appointmentToEdit.date);
+      const { dateValue, timeValue } = formatDateForInput(date);
+      setDateValue(dateValue);
+      setTimeValue(timeValue);
       setContact(appointmentToEdit.contact);
     } else {
       setCustomerName('');
@@ -48,8 +45,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       alert('Por favor, completa todos los campos.');
       return;
     }
-    const localDateTime = new Date(`${dateValue}T${timeValue}`);
-    const date = localDateTime.toISOString();
+    const date = `${dateValue}T${timeValue}:00`;
     onSave({ customerName, vehicle, service, date, contact, tags: appointmentToEdit?.tags }, appointmentToEdit?.id);
   };
 

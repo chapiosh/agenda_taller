@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [appointmentToComplete, setAppointmentToComplete] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -137,11 +138,24 @@ const App: React.FC = () => {
     setEditingAppointment(null);
   };
 
-  const filteredAppointments = appointments.filter(appointment =>
-    appointment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    appointment.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    appointment.service.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAppointments = appointments.filter(appointment => {
+    const matchesSearch = appointment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.vehicle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.service.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (selectedDate) {
+      const appointmentDate = new Date(appointment.date);
+      const filterDate = new Date(selectedDate);
+
+      return appointmentDate.getFullYear() === filterDate.getFullYear() &&
+        appointmentDate.getMonth() === filterDate.getMonth() &&
+        appointmentDate.getDate() === filterDate.getDate();
+    }
+
+    return true;
+  });
 
   const scheduledAppointments = filteredAppointments.filter(a => a.status === AppointmentStatus.Scheduled);
   const completedAppointments = filteredAppointments.filter(a => a.status === AppointmentStatus.Completed);
@@ -188,26 +202,51 @@ const App: React.FC = () => {
         </div>
         
         {viewMode === 'list' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4 border-b-2 border-brand-blue pb-2">Citas Programadas</h2>
-              <AppointmentList 
-                appointments={scheduledAppointments}
-                onToggleComplete={handleToggleComplete}
-                onDelete={handleDeleteAppointment}
-                onEdit={handleEditAppointment}
-              />
+          <>
+            <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+              <div className="flex items-center gap-3">
+                <label htmlFor="dateFilter" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Filtrar por fecha:
+                </label>
+                <input
+                  type="date"
+                  id="dateFilter"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+                />
+              </div>
+              {selectedDate && (
+                <button
+                  onClick={() => setSelectedDate('')}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors"
+                >
+                  Limpiar filtro
+                </button>
+              )}
             </div>
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4 border-b-2 border-gray-300 pb-2">Citas Completadas</h2>
-              <AppointmentList 
-                appointments={completedAppointments}
-                onToggleComplete={handleToggleComplete}
-                onDelete={handleDeleteAppointment}
-                onEdit={handleEditAppointment}
-              />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-700 mb-4 border-b-2 border-brand-blue pb-2">Citas Programadas</h2>
+                <AppointmentList
+                  appointments={scheduledAppointments}
+                  onToggleComplete={handleToggleComplete}
+                  onDelete={handleDeleteAppointment}
+                  onEdit={handleEditAppointment}
+                />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-700 mb-4 border-b-2 border-gray-300 pb-2">Citas Completadas</h2>
+                <AppointmentList
+                  appointments={completedAppointments}
+                  onToggleComplete={handleToggleComplete}
+                  onDelete={handleDeleteAppointment}
+                  onEdit={handleEditAppointment}
+                />
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           <CalendarView appointments={appointments} onEditAppointment={handleEditAppointment} />
         )}

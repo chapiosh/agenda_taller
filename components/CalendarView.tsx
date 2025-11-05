@@ -36,9 +36,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, onEditAppoint
   };
   
   const isSameDay = (d1: Date, d2: Date) => {
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
+    const date1 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+    const date2 = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+    return date1.getTime() === date2.getTime();
   };
 
   const today = new Date();

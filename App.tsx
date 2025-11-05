@@ -147,12 +147,11 @@ const App: React.FC = () => {
 
     if (selectedDate) {
       const appointmentDate = new Date(appointment.date);
-      const filterDate = new Date(selectedDate);
+      const [filterYear, filterMonth, filterDay] = selectedDate.split('-').map(Number);
 
-      const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate());
-      const filterDay = new Date(filterDate.getFullYear(), filterDate.getMonth(), filterDate.getDate());
-
-      return appointmentDay.getTime() === filterDay.getTime();
+      return appointmentDate.getFullYear() === filterYear &&
+             appointmentDate.getMonth() + 1 === filterMonth &&
+             appointmentDate.getDate() === filterDay;
     }
 
     return true;

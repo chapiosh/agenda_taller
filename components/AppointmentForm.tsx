@@ -23,11 +23,14 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       setCustomerName(appointmentToEdit.customerName);
       setVehicle(appointmentToEdit.vehicle);
       setService(appointmentToEdit.service);
-      const localDate = new Date(appointmentToEdit.date);
-      localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
-      const isoString = localDate.toISOString();
-      setDateValue(isoString.slice(0, 10));
-      setTimeValue(isoString.slice(11, 16));
+      const date = new Date(appointmentToEdit.date);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      setDateValue(`${year}-${month}-${day}`);
+      setTimeValue(`${hours}:${minutes}`);
       setContact(appointmentToEdit.contact);
     } else {
       setCustomerName('');

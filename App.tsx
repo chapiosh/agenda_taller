@@ -5,13 +5,15 @@ import AppointmentList from './components/AppointmentList';
 import AppointmentForm from './components/AppointmentForm';
 import Modal from './components/Modal';
 import CalendarView from './components/CalendarView';
+import DayView from './components/DayView';
 import TagCompletionModal from './components/TagCompletionModal';
 import { PlusIcon } from './components/icons/PlusIcon';
 import { CalendarIcon } from './components/icons/CalendarIcon';
 import { ListBulletIcon } from './components/icons/ListBulletIcon';
+import { ClockIcon } from './components/icons/ClockIcon';
 import * as apiService from './services/apiService';
 
-type ViewMode = 'list' | 'calendar';
+type ViewMode = 'list' | 'calendar' | 'day';
 
 const App: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -183,19 +185,26 @@ const App: React.FC = () => {
                 </div>
                 )}
                 <div className="flex items-center space-x-2 bg-gray-200 p-1 rounded-lg shrink-0">
-                    <button 
+                    <button
                     onClick={() => setViewMode('list')}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'list' ? 'bg-white text-brand-blue shadow' : 'text-gray-600 hover:bg-gray-300'}`}
                     aria-label="Vista de lista"
                     >
                     <ListBulletIcon />
                     </button>
-                    <button 
+                    <button
                     onClick={() => setViewMode('calendar')}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'calendar' ? 'bg-white text-brand-blue shadow' : 'text-gray-600 hover:bg-gray-300'}`}
                     aria-label="Vista de calendario"
                     >
                     <CalendarIcon />
+                    </button>
+                    <button
+                    onClick={() => setViewMode('day')}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'day' ? 'bg-white text-brand-blue shadow' : 'text-gray-600 hover:bg-gray-300'}`}
+                    aria-label="Vista por día"
+                    >
+                    <ClockIcon />
                     </button>
                 </div>
             </div>
@@ -247,8 +256,10 @@ const App: React.FC = () => {
               </div>
             </div>
           </>
-        ) : (
+        ) : viewMode === 'calendar' ? (
           <CalendarView appointments={appointments} onEditAppointment={handleEditAppointment} />
+        ) : (
+          <DayView appointments={appointments} onEditAppointment={handleEditAppointment} />
         )}
 
       </main>

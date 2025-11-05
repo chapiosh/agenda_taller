@@ -147,14 +147,12 @@ const App: React.FC = () => {
 
     if (selectedDate) {
       const appointmentDate = new Date(appointment.date);
-      const filterDate = new Date(selectedDate + 'T00:00:00');
+      const filterDate = new Date(selectedDate);
 
-      const appointmentLocalDate = new Date(appointmentDate.getTime() - (appointmentDate.getTimezoneOffset() * 60000));
-      const filterLocalDate = new Date(filterDate.getTime() - (filterDate.getTimezoneOffset() * 60000));
+      const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate());
+      const filterDay = new Date(filterDate.getFullYear(), filterDate.getMonth(), filterDate.getDate());
 
-      return appointmentLocalDate.getFullYear() === filterLocalDate.getFullYear() &&
-        appointmentLocalDate.getMonth() === filterLocalDate.getMonth() &&
-        appointmentLocalDate.getDate() === filterLocalDate.getDate();
+      return appointmentDay.getTime() === filterDay.getTime();
     }
 
     return true;

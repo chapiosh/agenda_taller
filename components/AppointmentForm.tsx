@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Appointment } from '../types';
+import { Appointment, AppointmentTag } from '../types';
 import { generateServiceDescription } from '../services/geminiService';
 import { SparklesIcon } from './icons/SparklesIcon';
+import TagSelector from './TagSelector';
 
 interface AppointmentFormProps {
   onSave: (appointment: Omit<Appointment, 'id' | 'status'>, id?: string) => void;
@@ -16,6 +17,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
   const [dateValue, setDateValue] = useState('');
   const [timeValue, setTimeValue] = useState('');
   const [contact, setContact] = useState('');
+  const [tags, setTags] = useState<AppointmentTag[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       setDateValue(isoString.slice(0, 10));
       setTimeValue(isoString.slice(11, 16));
       setContact(appointmentToEdit.contact);
+      setTags(appointmentToEdit.tags || []);
     } else {
       setCustomerName('');
       setVehicle('');
@@ -36,9 +39,15 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       setDateValue('');
       setTimeValue('');
       setContact('');
+      setTags([]);
     }
   }, [appointmentToEdit]);
 
+  const handleTagToggle = (tag: AppointmentTag) => {
+    setTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +56,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
       return;
     }
     const date = `${dateValue}T${timeValue}`;
-    onSave({ customerName, vehicle, service, date, contact }, appointmentToEdit?.id);
+    onSave({ customerName, vehicle, service, date, contact, tags }, appointmentToEdit?.id);
   };
 
   const handleGenerateDescription = async () => {
@@ -149,6 +158,8 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSave, appointmentTo
           required
         />
       </div>
+
+      <TagSelector selectedTags={tags} onTagToggle={handleTagToggle} />
 
       <div className="flex gap-4">
         <button

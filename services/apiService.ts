@@ -1,79 +1,108 @@
+import { createClient } from '@supabase/supabase-js';
 import { Appointment, AppointmentStatus } from '../types';
 
-const STORAGE_KEY = 'appointments';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Helper to get appointments from localStorage
-const getStoredAppointments = (): Appointment[] => {
-  try {
-    const storedData = localStorage.getItem(STORAGE_KEY);
-    return storedData ? JSON.parse(storedData) : [];
-  } catch (error) {
-    console.error("Error reading from localStorage:", error);
-    return [];
-  }
-};
-
-// Helper to save appointments to localStorage
-const saveAppointments = (appointments: Appointment[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appointments));
-  } catch (error) {
-    console.error("Error writing to localStorage:", error);
-  }
-};
-
-// --- Funciones del servicio ---
-
-/**
- * Obtiene todas las citas del almacenamiento local.
- */
 export const getAppointments = async (): Promise<Appointment[]> => {
-  const appointments = getStoredAppointments();
-  // Simula una llamada a la API asíncrona
-  return Promise.resolve(appointments.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching appointments:', error);
+    throw error;
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    customerName: row.customer_name,
+    vehicle: row.vehicle,
+    service: row.service,
+    date: row.date,
+    contact: row.contact,
+    status: row.status as AppointmentStatus,
+    tags: row.tags || [],
+  }));
 };
 
-/**
- * Crea una nueva cita en el almacenamiento local.
- * @param data Los datos de la cita a crear (sin id ni status).
- */
 export const createAppointment = async (data: Omit<Appointment, 'id' | 'status'>): Promise<Appointment> => {
-  const appointments = getStoredAppointments();
-  const newAppointment: Appointment = {
-    ...data,
-    id: new Date().getTime().toString(), // Genera un ID simple
-    status: AppointmentStatus.Scheduled,
+  const { data: newAppointment, error } = await supabase
+    .from('appointments')
+    .insert([
+      {
+        customer_name: data.customerName,
+        vehicle: data.vehicle,
+        service: data.service,
+        date: data.date,
+        contact: data.contact,
+        status: AppointmentStatus.Scheduled,
+        tags: data.tags || [],
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating appointment:', error);
+    throw error;
+  }
+
+  return {
+    id: newAppointment.id,
+    customerName: newAppointment.customer_name,
+    vehicle: newAppointment.vehicle,
+    service: newAppointment.service,
+    date: newAppointment.date,
+    contact: newAppointment.contact,
+    status: newAppointment.status as AppointmentStatus,
+    tags: newAppointment.tags || [],
   };
-  const updatedAppointments = [...appointments, newAppointment];
-  saveAppointments(updatedAppointments);
-  return Promise.resolve(newAppointment);
 };
 
-/**
- * Actualiza una cita existente en el almacenamiento local.
- * @param updatedData El objeto completo de la cita actualizada.
- */
 export const updateAppointment = async (updatedData: Appointment): Promise<Appointment> => {
-  let appointments = getStoredAppointments();
-  const index = appointments.findIndex(app => app.id === updatedData.id);
-  if (index === -1) {
-    throw new Error("Appointment not found");
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({
+      customer_name: updatedData.customerName,
+      vehicle: updatedData.vehicle,
+      service: updatedData.service,
+      date: updatedData.date,
+      contact: updatedData.contact,
+      status: updatedData.status,
+      tags: updatedData.tags || [],
+    })
+    .eq('id', updatedData.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating appointment:', error);
+    throw error;
   }
-  appointments[index] = updatedData;
-  saveAppointments(appointments);
-  return Promise.resolve(updatedData);
+
+  return {
+    id: data.id,
+    customerName: data.customer_name,
+    vehicle: data.vehicle,
+    service: data.service,
+    date: data.date,
+    contact: data.contact,
+    status: data.status as AppointmentStatus,
+    tags: data.tags || [],
+  };
 };
 
-/**
- * Elimina una cita del almacenamiento local.
- * @param id El ID de la cita a eliminar.
- */
 export const deleteAppointment = async (id: string): Promise<void> => {
-  let appointments = getStoredAppointments();
-  const updatedAppointments = appointments.filter(app => app.id !== id);
-  if (appointments.length === updatedAppointments.length) {
-      throw new Error("Appointment not found to delete");
+  const { error } = await supabase
+    .from('appointments')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting appointment:', error);
+    throw error;
   }
-  saveAppointments(updatedAppointments);
-  return Promise.resolve();
 };

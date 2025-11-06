@@ -6,17 +6,18 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const getAppointments = async (): Promise<Appointment[]> => {
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('id, customer_name, vehicle, service, contact, status, tags, to_char(date, \'YYYY-MM-DD"T"HH24:MI:SS\') as date')
-    .order('date', { ascending: true });
+  const { data, error } = await supabase.rpc('rpc_get_appointments');
 
   if (error) {
     console.error('Error fetching appointments:', error);
     throw error;
   }
 
-  return (data || []).map((row: any) => ({
+  if (!data) {
+    return [];
+  }
+
+  return data.map((row: any) => ({
     id: row.id,
     customerName: row.customer_name,
     vehicle: row.vehicle,

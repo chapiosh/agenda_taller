@@ -34,3 +34,32 @@ export interface Appointment {
   status: AppointmentStatus;
   tags?: AppointmentTag[];
 }
+
+export type VehicleInShopTag =
+  | 'esperando refacciones'
+  | 'en diagnóstico'
+  | 'en reparación'
+  | 'listo para entrega'
+  | 'esperando aprobación'
+  | 'garantía';
+
+export const VEHICLE_IN_SHOP_TAGS: VehicleInShopTag[] = [
+  'esperando refacciones',
+  'en diagnóstico',
+  'en reparación',
+  'listo para entrega',
+  'esperando aprobación',
+  'garantía',
+];
+
+export interface VehicleInShop {
+  id: string;
+  customerName: string;
+  vehicle: string;
+  service: string;
+  contact: string;
+  checkInDate: string;
+  estimatedCompletion?: string;
+  notes: string;
+  tags?: VehicleInShopTag[];
+}

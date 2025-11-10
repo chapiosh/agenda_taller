@@ -8,13 +8,14 @@ import Modal from './components/Modal';
 import CalendarView from './components/CalendarView';
 import DayView from './components/DayView';
 import TagCompletionModal from './components/TagCompletionModal';
+import VehiclesInShop from './components/VehiclesInShop';
 import { PlusIcon } from './components/icons/PlusIcon';
 import { CalendarIcon } from './components/icons/CalendarIcon';
 import { ListBulletIcon } from './components/icons/ListBulletIcon';
 import { ClockIcon } from './components/icons/ClockIcon';
 import * as apiService from './services/apiService';
 
-type ViewMode = 'list' | 'calendar' | 'day';
+type ViewMode = 'list' | 'calendar' | 'day' | 'shop';
 
 const App: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -218,7 +219,9 @@ const App: React.FC = () => {
       <Header />
       <main className="container mx-auto p-4 md:p-8">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-brand-blue">Panel de Citas</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-brand-blue">
+              {viewMode === 'shop' ? 'Vehículos en Taller' : 'Panel de Citas'}
+            </h1>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <button
                   onClick={handleCopyTodayAppointments}
@@ -266,6 +269,18 @@ const App: React.FC = () => {
                     aria-label="Vista por día"
                     >
                     <ClockIcon />
+                    </button>
+                    <button
+                    onClick={() => setViewMode('shop')}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'shop' ? 'bg-white text-brand-blue shadow' : 'text-gray-600 hover:bg-gray-300'}`}
+                    aria-label="Vehículos en taller"
+                    title="Vehículos en taller"
+                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                      <path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                      <path d="M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5" />
+                    </svg>
                     </button>
                 </div>
             </div>
@@ -319,19 +334,23 @@ const App: React.FC = () => {
           </>
         ) : viewMode === 'calendar' ? (
           <CalendarView appointments={appointments} onEditAppointment={handleEditAppointment} />
-        ) : (
+        ) : viewMode === 'day' ? (
           <DayView appointments={appointments} onEditAppointment={handleEditAppointment} />
+        ) : (
+          <VehiclesInShop />
         )}
 
       </main>
 
-      <button
-        onClick={openAddModal}
-        className="fixed bottom-8 right-8 bg-brand-blue hover:bg-brand-blue-dark text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
-        aria-label="Añadir nueva cita"
-      >
-        <PlusIcon />
-      </button>
+      {viewMode !== 'shop' && (
+        <button
+          onClick={openAddModal}
+          className="fixed bottom-8 right-8 bg-brand-blue hover:bg-brand-blue-dark text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
+          aria-label="Añadir nueva cita"
+        >
+          <PlusIcon />
+        </button>
+      )}
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         <AppointmentForm

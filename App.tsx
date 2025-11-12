@@ -15,6 +15,7 @@ import { CalendarIcon } from './components/icons/CalendarIcon';
 import { ListBulletIcon } from './components/icons/ListBulletIcon';
 import { ClockIcon } from './components/icons/ClockIcon';
 import * as apiService from './services/apiService';
+import { createVehicleInShop } from './services/vehiclesService';
 
 type ViewMode = 'list' | 'calendar' | 'day' | 'shop' | 'shopTable';
 
@@ -141,6 +142,32 @@ const App: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingAppointment(null);
+  };
+
+  const handleMoveToShop = async (appointment: Appointment) => {
+    if (!window.confirm('¿Deseas pasar esta cita a vehículos en taller?')) return;
+
+    try {
+      const now = new Date();
+      const vehicleData = {
+        customerName: appointment.customerName,
+        vehicle: appointment.vehicle,
+        service: appointment.service,
+        contact: appointment.contact,
+        checkInDate: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+        estimatedCompletion: undefined,
+        notes: `Cita original: ${new Date(appointment.date).toLocaleDateString('es-ES')}`,
+        tags: [],
+      };
+
+      await createVehicleInShop(vehicleData);
+      await apiService.deleteAppointment(appointment.id);
+      setAppointments(appointments.filter(app => app.id !== appointment.id));
+      alert('✅ Vehículo agregado al taller correctamente.');
+    } catch (error) {
+      console.error('Error moving to shop:', error);
+      alert('❌ Error al pasar el vehículo al taller.');
+    }
   };
 
   const filteredAppointments = appointments.filter(appointment => {
@@ -332,6 +359,7 @@ const App: React.FC = () => {
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteAppointment}
                   onEdit={handleEditAppointment}
+                  onMoveToShop={handleMoveToShop}
                 />
               </div>
               <div>

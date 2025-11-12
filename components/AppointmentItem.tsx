@@ -21,9 +21,10 @@ interface AppointmentItemProps {
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (appointment: Appointment) => void;
+  onMoveToShop?: (appointment: Appointment) => void;
 }
 
-const AppointmentItem: React.FC<AppointmentItemProps> = ({ appointment, onToggleComplete, onDelete, onEdit }) => {
+const AppointmentItem: React.FC<AppointmentItemProps> = ({ appointment, onToggleComplete, onDelete, onEdit, onMoveToShop }) => {
   const isCompleted = appointment.status === AppointmentStatus.Completed;
 
   const formatDate = (dateString: string) => {
@@ -69,6 +70,19 @@ const AppointmentItem: React.FC<AppointmentItemProps> = ({ appointment, onToggle
             <p className="text-sm text-gray-500">{appointment.vehicle}</p>
           </div>
           <div className="flex items-center space-x-2">
+            {onMoveToShop && (
+              <button
+                onClick={() => onMoveToShop(appointment)}
+                className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                title="Pasar a taller"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                  <path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+                  <path d="M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5" />
+                </svg>
+              </button>
+            )}
             <button
               onClick={handleWhatsApp}
               className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors"

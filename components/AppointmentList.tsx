@@ -7,9 +7,10 @@ interface AppointmentListProps {
   onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (appointment: Appointment) => void;
+  onMoveToShop?: (appointment: Appointment) => void;
 }
 
-const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, onToggleComplete, onDelete, onEdit }) => {
+const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, onToggleComplete, onDelete, onEdit, onMoveToShop }) => {
   if (appointments.length === 0) {
     return <p className="text-gray-500 italic mt-4 text-center">No hay citas en esta categoría.</p>;
   }
@@ -17,12 +18,13 @@ const AppointmentList: React.FC<AppointmentListProps> = ({ appointments, onToggl
   return (
     <div className="space-y-4">
       {appointments.map(appointment => (
-        <AppointmentItem 
-          key={appointment.id} 
-          appointment={appointment} 
+        <AppointmentItem
+          key={appointment.id}
+          appointment={appointment}
           onToggleComplete={onToggleComplete}
           onDelete={onDelete}
           onEdit={onEdit}
+          onMoveToShop={onMoveToShop}
         />
       ))}
     </div>

@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VehicleInShopTag } from '../types';
-import { getVehiclesInShop } from '../services/vehiclesService';
+import { getVehiclesInShop, updateVehicleInShop, deleteVehicleInShop } from '../services/vehiclesService';
 import { parseLocalDate } from '../utils/dateUtils';
+import { PencilIcon } from './icons/PencilIcon';
+import { TrashIcon } from './icons/TrashIcon';
+import Modal from './Modal';
+import { VEHICLE_IN_SHOP_TAGS } from '../types';
 
 const TAG_COLORS: Record<VehicleInShopTag, string> = {
   'esperando refacciones': 'bg-orange-100 text-orange-800 border-orange-300',
@@ -15,6 +19,20 @@ const TAG_COLORS: Record<VehicleInShopTag, string> = {
 const VehiclesTableView: React.FC = () => {
   const [vehicles, setVehicles] = useState<VehicleInShop[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<VehicleInShop | null>(null);
+  const [formData, setFormData] = useState({
+    customerName: '',
+    vehicle: '',
+    service: '',
+    contact: '',
+    checkInDate: '',
+    checkInTime: '',
+    estimatedDate: '',
+    estimatedTime: '',
+    notes: '',
+  });
+  const [selectedTags, setSelectedTags] = useState<VehicleInShopTag[]>([]);
 
   const loadVehicles = async () => {
     try {
@@ -62,6 +80,93 @@ const VehiclesTableView: React.FC = () => {
     });
   };
 
+  const handleOpenModal = (vehicle: VehicleInShop) => {
+    setEditingVehicle(vehicle);
+    const checkInDateTime = parseLocalDate(vehicle.checkInDate);
+    const estimatedDateTime = vehicle.estimatedCompletion ? parseLocalDate(vehicle.estimatedCompletion) : null;
+
+    setFormData({
+      customerName: vehicle.customerName,
+      vehicle: vehicle.vehicle,
+      service: vehicle.service,
+      contact: vehicle.contact,
+      checkInDate: checkInDateTime.toISOString().split('T')[0],
+      checkInTime: checkInDateTime.toTimeString().slice(0, 5),
+      estimatedDate: estimatedDateTime ? estimatedDateTime.toISOString().split('T')[0] : '',
+      estimatedTime: estimatedDateTime ? estimatedDateTime.toTimeString().slice(0, 5) : '',
+      notes: vehicle.notes || '',
+    });
+    setSelectedTags(vehicle.tags || []);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingVehicle(null);
+    setFormData({
+      customerName: '',
+      vehicle: '',
+      service: '',
+      contact: '',
+      checkInDate: '',
+      checkInTime: '',
+      estimatedDate: '',
+      estimatedTime: '',
+      notes: '',
+    });
+    setSelectedTags([]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingVehicle) return;
+
+    const checkInDateTime = `${formData.checkInDate}T${formData.checkInTime}`;
+    const estimatedDateTime = formData.estimatedDate && formData.estimatedTime
+      ? `${formData.estimatedDate}T${formData.estimatedTime}`
+      : undefined;
+
+    const updatedData: VehicleInShop = {
+      ...editingVehicle,
+      customerName: formData.customerName,
+      vehicle: formData.vehicle,
+      service: formData.service,
+      contact: formData.contact,
+      checkInDate: checkInDateTime,
+      estimatedCompletion: estimatedDateTime,
+      notes: formData.notes,
+      tags: selectedTags,
+    };
+
+    try {
+      await updateVehicleInShop(updatedData);
+      await loadVehicles();
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error updating vehicle:', error);
+      alert('Error al actualizar el vehículo');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este vehículo?')) {
+      try {
+        await deleteVehicleInShop(id);
+        await loadVehicles();
+      } catch (error) {
+        console.error('Error deleting vehicle:', error);
+        alert('Error al eliminar el vehículo');
+      }
+    }
+  };
+
+  const toggleTag = (tag: VehicleInShopTag) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -98,6 +203,9 @@ const VehiclesTableView: React.FC = () => {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Notas
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
                   </th>
                 </tr>
               </thead>
@@ -155,6 +263,24 @@ const VehiclesTableView: React.FC = () => {
                           {vehicle.notes || '-'}
                         </div>
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleOpenModal(vehicle)}
+                            className="p-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                            title="Editar vehículo"
+                          >
+                            <PencilIcon />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(vehicle.id)}
+                            className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                            title="Eliminar vehículo"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -167,6 +293,145 @@ const VehiclesTableView: React.FC = () => {
       <div className="text-xs text-gray-500 text-center">
         Actualización automática cada 5 minutos
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Editar Vehículo">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+              <input
+                type="text"
+                value={formData.customerName}
+                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Vehículo *</label>
+              <input
+                type="text"
+                value={formData.vehicle}
+                onChange={(e) => setFormData({ ...formData, vehicle: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Servicio *</label>
+            <textarea
+              value={formData.service}
+              onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={2}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Contacto *</label>
+            <input
+              type="text"
+              value={formData.contact}
+              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Ingreso *</label>
+              <input
+                type="date"
+                value={formData.checkInDate}
+                onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Hora de Ingreso *</label>
+              <input
+                type="time"
+                value={formData.checkInTime}
+                onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha Estimada de Entrega</label>
+              <input
+                type="date"
+                value={formData.estimatedDate}
+                onChange={(e) => setFormData({ ...formData, estimatedDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Hora Estimada</label>
+              <input
+                type="time"
+                value={formData.estimatedTime}
+                onChange={(e) => setFormData({ ...formData, estimatedTime: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+            <div className="flex flex-wrap gap-2">
+              {VEHICLE_IN_SHOP_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-full border transition-colors ${
+                    selectedTags.includes(tag)
+                      ? 'bg-blue-100 text-blue-800 border-blue-300'
+                      : 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Guardar Cambios
+            </button>
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -20,6 +20,11 @@ import { createVehicleInShop } from './services/vehiclesService';
 type ViewMode = 'list' | 'calendar' | 'day' | 'shop' | 'shopTable';
 
 const App: React.FC = () => {
+  const getTodayDate = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  };
+
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -27,7 +32,7 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [appointmentToComplete, setAppointmentToComplete] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
 
   useEffect(() => {
     const fetchAppointments = async () => {

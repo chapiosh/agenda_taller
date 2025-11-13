@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VEHICLE_IN_SHOP_TAGS, VehicleInShopTag } from '../types';
-import { getVehiclesInShop, createVehicleInShop, updateVehicleInShop, deleteVehicleInShop } from '../services/vehiclesService';
+import { getVehiclesInShop, createVehicleInShop, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
 import { parseLocalDate } from '../utils/dateUtils';
 import { PlusIcon } from './icons/PlusIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { CheckIcon } from './icons/CheckIcon';
 import Modal from './Modal';
 
 const TAG_COLORS: Record<VehicleInShopTag, string> = {

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VehicleInShopTag } from '../types';
-import { getVehiclesInShop, updateVehicleInShop, deleteVehicleInShop } from '../services/vehiclesService';
+import { getVehiclesInShop, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
 import { parseLocalDate } from '../utils/dateUtils';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { CheckIcon } from './icons/CheckIcon';
 import Modal from './Modal';
 import { VEHICLE_IN_SHOP_TAGS } from '../types';
 
@@ -149,6 +150,18 @@ const VehiclesTableView: React.FC = () => {
     }
   };
 
+  const handleMarkAsDelivered = async (id: string) => {
+    if (confirm('¿Confirmar que el vehículo ha sido entregado?')) {
+      try {
+        await markVehicleAsDelivered(id);
+        await loadVehicles();
+      } catch (error) {
+        console.error('Error marking vehicle as delivered:', error);
+        alert('Error al marcar el vehículo como entregado');
+      }
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este vehículo?')) {
       try {
@@ -265,6 +278,19 @@ const VehiclesTableView: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
+                          {vehicle.deliveredAt ? (
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full border border-green-300">
+                              Entregado
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleMarkAsDelivered(vehicle.id)}
+                              className="p-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                              title="Marcar como entregado"
+                            >
+                              <CheckIcon />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleOpenModal(vehicle)}
                             className="p-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"

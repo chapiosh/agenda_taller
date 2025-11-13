@@ -27,6 +27,7 @@ export const getVehiclesInShop = async (): Promise<VehicleInShop[]> => {
     estimatedCompletion: row.estimated_completion,
     notes: row.notes,
     tags: row.tags || [],
+    deliveredAt: row.delivered_at,
   }));
 };
 
@@ -99,6 +100,18 @@ export const deleteVehicleInShop = async (id: string): Promise<void> => {
 
   if (error) {
     console.error('Error deleting vehicle:', error);
+    throw error;
+  }
+};
+
+export const markVehicleAsDelivered = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('vehicles_in_shop')
+    .update({ delivered_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error marking vehicle as delivered:', error);
     throw error;
   }
 };

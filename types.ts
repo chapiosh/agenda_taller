@@ -62,4 +62,5 @@ export interface VehicleInShop {
   estimatedCompletion?: string;
   notes: string;
   tags?: VehicleInShopTag[];
+  deliveredAt?: string;
 }

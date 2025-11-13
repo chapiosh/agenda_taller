@@ -161,8 +161,6 @@ const App: React.FC = () => {
       };
 
       await createVehicleInShop(vehicleData);
-      await apiService.deleteAppointment(appointment.id);
-      setAppointments(appointments.filter(app => app.id !== appointment.id));
       alert('✅ Vehículo agregado al taller correctamente.');
     } catch (error) {
       console.error('Error moving to shop:', error);

@@ -137,6 +137,18 @@ const VehiclesInShop: React.FC = () => {
     }
   };
 
+  const handleMarkAsDelivered = async (id: string) => {
+    if (confirm('¿Confirmar que el vehículo ha sido entregado?')) {
+      try {
+        await markVehicleAsDelivered(id);
+        await loadVehicles();
+      } catch (error) {
+        console.error('Error marking vehicle as delivered:', error);
+        alert('Error al marcar el vehículo como entregado');
+      }
+    }
+  };
+
   const handleWhatsApp = (vehicle: VehicleInShop) => {
     const phone = vehicle.contact.replace(/\D/g, '');
     const message = `Hola ${vehicle.customerName}, su vehículo ${vehicle.vehicle} está en el taller. ${vehicle.notes ? `Nota: ${vehicle.notes}` : ''}`;

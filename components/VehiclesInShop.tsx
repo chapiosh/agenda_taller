@@ -259,8 +259,22 @@ const VehiclesInShop: React.FC = () => {
                   <div>
                     <p className="font-bold text-lg text-blue-600">{vehicle.customerName}</p>
                     <p className="text-sm text-gray-500">{vehicle.vehicle}</p>
+                    {vehicle.deliveredAt && (
+                      <span className="inline-block mt-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full border border-green-300">
+                        Entregado
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
+                    {!vehicle.deliveredAt && (
+                      <button
+                        onClick={() => handleMarkAsDelivered(vehicle.id)}
+                        className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                        title="Marcar como entregado"
+                      >
+                        <CheckIcon />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleWhatsApp(vehicle)}
                       className="p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors"

@@ -10,6 +10,8 @@ import { VEHICLE_IN_SHOP_TAGS } from '../types';
 
 const TAG_COLORS: Record<VehicleInShopTag, string> = {
   'esperando refacciones': 'bg-orange-100 text-orange-800 border-orange-300',
+  'refacciones en recepción': 'bg-amber-100 text-amber-800 border-amber-300',
+  'esperando técnico': 'bg-cyan-100 text-cyan-800 border-cyan-300',
   'en diagnóstico': 'bg-blue-100 text-blue-800 border-blue-300',
   'en reparación': 'bg-yellow-100 text-yellow-800 border-yellow-300',
   'listo para entrega': 'bg-green-100 text-green-800 border-green-300',

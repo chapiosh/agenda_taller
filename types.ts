@@ -37,6 +37,8 @@ export interface Appointment {
 
 export type VehicleInShopTag =
   | 'esperando refacciones'
+  | 'refacciones en recepción'
+  | 'esperando técnico'
   | 'en diagnóstico'
   | 'en reparación'
   | 'listo para entrega'
@@ -45,6 +47,8 @@ export type VehicleInShopTag =
 
 export const VEHICLE_IN_SHOP_TAGS: VehicleInShopTag[] = [
   'esperando refacciones',
+  'refacciones en recepción',
+  'esperando técnico',
   'en diagnóstico',
   'en reparación',
   'listo para entrega',

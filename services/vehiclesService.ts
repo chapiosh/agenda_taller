@@ -28,6 +28,8 @@ export const getVehiclesInShop = async (): Promise<VehicleInShop[]> => {
     notes: row.notes,
     tags: row.tags || [],
     deliveredAt: row.delivered_at,
+    technician: row.technician,
+    laborHours: row.labor_hours,
   }));
 };
 
@@ -54,6 +56,8 @@ export const getDeliveredVehicles = async (): Promise<VehicleInShop[]> => {
     notes: row.notes,
     tags: row.tags || [],
     deliveredAt: row.delivered_at,
+    technician: row.technician,
+    laborHours: row.labor_hours,
   }));
 };
 
@@ -67,6 +71,8 @@ export const createVehicleInShop = async (data: Omit<VehicleInShop, 'id'>): Prom
     p_estimated_completion: data.estimatedCompletion || null,
     p_notes: data.notes || '',
     p_tags: data.tags || [],
+    p_technician: data.technician || null,
+    p_labor_hours: data.laborHours || 0,
   });
 
   if (error) {
@@ -84,6 +90,8 @@ export const createVehicleInShop = async (data: Omit<VehicleInShop, 'id'>): Prom
     estimatedCompletion: result.estimated_completion,
     notes: result.notes,
     tags: result.tags || [],
+    technician: result.technician,
+    laborHours: result.labor_hours,
   };
 };
 
@@ -98,6 +106,8 @@ export const updateVehicleInShop = async (updatedData: VehicleInShop): Promise<V
     p_estimated_completion: updatedData.estimatedCompletion || null,
     p_notes: updatedData.notes || '',
     p_tags: updatedData.tags || [],
+    p_technician: updatedData.technician || null,
+    p_labor_hours: updatedData.laborHours || 0,
   });
 
   if (error) {
@@ -115,6 +125,8 @@ export const updateVehicleInShop = async (updatedData: VehicleInShop): Promise<V
     estimatedCompletion: result.estimated_completion,
     notes: result.notes,
     tags: result.tags || [],
+    technician: result.technician,
+    laborHours: result.labor_hours,
   };
 };
 

@@ -67,4 +67,6 @@ export interface VehicleInShop {
   notes: string;
   tags?: VehicleInShopTag[];
   deliveredAt?: string;
+  technician?: string;
+  laborHours?: number;
 }

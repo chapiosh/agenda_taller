@@ -35,6 +35,8 @@ const VehiclesTableView: React.FC = () => {
     estimatedDate: '',
     estimatedTime: '',
     notes: '',
+    technician: '',
+    laborHours: '0',
   });
   const [selectedTags, setSelectedTags] = useState<VehicleInShopTag[]>([]);
 
@@ -103,6 +105,8 @@ const VehiclesTableView: React.FC = () => {
       estimatedDate: estimatedDateTime ? estimatedDateTime.toISOString().split('T')[0] : '',
       estimatedTime: estimatedDateTime ? estimatedDateTime.toTimeString().slice(0, 5) : '',
       notes: vehicle.notes || '',
+      technician: vehicle.technician || '',
+      laborHours: vehicle.laborHours?.toString() || '0',
     });
     setSelectedTags(vehicle.tags || []);
     setIsModalOpen(true);
@@ -121,6 +125,8 @@ const VehiclesTableView: React.FC = () => {
       estimatedDate: '',
       estimatedTime: '',
       notes: '',
+      technician: '',
+      laborHours: '0',
     });
     setSelectedTags([]);
   };
@@ -145,6 +151,8 @@ const VehiclesTableView: React.FC = () => {
       estimatedCompletion: estimatedDateTime,
       notes: formData.notes,
       tags: selectedTags,
+      technician: formData.technician,
+      laborHours: parseFloat(formData.laborHours) || 0,
     };
 
     try {
@@ -187,6 +195,32 @@ const VehiclesTableView: React.FC = () => {
     );
   };
 
+  const handleTechnicianChange = async (id: string, technician: string) => {
+    const vehicle = vehicles.find(v => v.id === id);
+    if (!vehicle) return;
+
+    try {
+      await updateVehicleInShop({ ...vehicle, technician });
+      setVehicles(prev => prev.map(v => v.id === id ? { ...v, technician } : v));
+    } catch (error) {
+      console.error('Error updating technician:', error);
+      alert('Error al actualizar el técnico');
+    }
+  };
+
+  const handleLaborHoursChange = async (id: string, laborHours: number) => {
+    const vehicle = vehicles.find(v => v.id === id);
+    if (!vehicle) return;
+
+    try {
+      await updateVehicleInShop({ ...vehicle, laborHours });
+      setVehicles(prev => prev.map(v => v.id === id ? { ...v, laborHours } : v));
+    } catch (error) {
+      console.error('Error updating labor hours:', error);
+      alert('Error al actualizar las horas de mano de obra');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -227,6 +261,12 @@ const VehiclesTableView: React.FC = () => {
                     Servicio
                   </th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    Técnico
+                  </th>
+                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                    Hrs MO
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                     Estado
                   </th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -259,6 +299,25 @@ const VehiclesTableView: React.FC = () => {
                         <div className="text-xs text-gray-700 max-w-[150px] truncate" title={vehicle.service}>
                           {vehicle.service}
                         </div>
+                      </td>
+                      <td className="px-2 py-2">
+                        <input
+                          type="text"
+                          value={vehicle.technician || ''}
+                          onChange={(e) => handleTechnicianChange(vehicle.id, e.target.value)}
+                          placeholder="Asignar"
+                          className="w-full text-xs px-1.5 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <input
+                          type="number"
+                          value={vehicle.laborHours || 0}
+                          onChange={(e) => handleLaborHoursChange(vehicle.id, parseFloat(e.target.value) || 0)}
+                          step="0.5"
+                          min="0"
+                          className="w-16 text-xs px-1.5 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
                       </td>
                       <td className="px-2 py-2">
                         <div className="flex flex-wrap gap-1">
@@ -380,14 +439,39 @@ const VehiclesTableView: React.FC = () => {
             />
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contacto *</label>
+              <input
+                type="text"
+                value={formData.contact}
+                onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Técnico Asignado</label>
+              <input
+                type="text"
+                value={formData.technician}
+                onChange={(e) => setFormData({ ...formData, technician: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Nombre del técnico"
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contacto *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Horas de Mano de Obra</label>
             <input
-              type="text"
-              value={formData.contact}
-              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+              type="number"
+              value={formData.laborHours}
+              onChange={(e) => setFormData({ ...formData, laborHours: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
+              step="0.5"
+              min="0"
+              placeholder="0"
             />
           </div>
 

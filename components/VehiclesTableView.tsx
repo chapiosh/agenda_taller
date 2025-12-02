@@ -362,7 +362,7 @@ const VehiclesTableView: React.FC = () => {
                         <div className="text-xs text-gray-500">{vehicle.customerName}</div>
                       </td>
                       <td className="px-2 py-2">
-                        <div className="text-xs text-gray-700 max-w-[150px] truncate" title={vehicle.service}>
+                        <div className="text-xs text-gray-700 max-w-[200px] break-words">
                           {vehicle.service}
                         </div>
                       </td>

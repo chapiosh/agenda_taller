@@ -16,7 +16,6 @@ import { ListBulletIcon } from './components/icons/ListBulletIcon';
 import { ClockIcon } from './components/icons/ClockIcon';
 import * as apiService from './services/apiService';
 import { createVehicleInShop } from './services/vehiclesService';
-import { createVehicleInShop } from './services/vehiclesService';
 
 type ViewMode = 'list' | 'calendar' | 'day' | 'shop' | 'shopTable';
 

@@ -344,39 +344,39 @@ const VehiclesTableView: React.FC = () => {
           <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-blue-600">
                 <tr>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Vehículo
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Servicio
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Técnico
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
                     Hrs MO
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Folio
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Estado
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Ingreso
                   </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
                     Est. Entrega
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
                     Días
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
                     Comentarios
                   </th>
-                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
                     Acciones
                   </th>
                 </tr>

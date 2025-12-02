@@ -16,6 +16,7 @@ import { ListBulletIcon } from './components/icons/ListBulletIcon';
 import { ClockIcon } from './components/icons/ClockIcon';
 import * as apiService from './services/apiService';
 import { createVehicleInShop } from './services/vehiclesService';
+import { createVehicleInShop } from './services/vehiclesService';
 
 type ViewMode = 'list' | 'calendar' | 'day' | 'shop' | 'shopTable';
 
@@ -109,6 +110,23 @@ const App: React.FC = () => {
       setAppointments(appointments.map(app =>
         app.id === appointmentToComplete ? updatedAppointment : app
       ));
+
+      if (tag === 'asistió' || tag === 'llegó sin cita' || tag === 'llegó tarde') {
+        try {
+          await createVehicleInShop({
+            customerName: appointment.customerName,
+            vehicle: appointment.vehicle,
+            service: appointment.service,
+            contact: appointment.contact,
+            checkInDate: new Date().toISOString(),
+            notes: `Cita: ${tag}`,
+            tags: [],
+          });
+        } catch (vehicleError) {
+          console.error('Error creating vehicle in shop:', vehicleError);
+        }
+      }
+
       setIsTagModalOpen(false);
       setAppointmentToComplete(null);
     } catch(error) {

@@ -69,4 +69,5 @@ export interface VehicleInShop {
   deliveredAt?: string;
   technician?: string;
   laborHours?: number;
+  folio?: string;
 }

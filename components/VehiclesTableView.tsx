@@ -37,6 +37,7 @@ const VehiclesTableView: React.FC = () => {
     notes: '',
     technician: '',
     laborHours: '0',
+    folio: '',
   });
   const [selectedTags, setSelectedTags] = useState<VehicleInShopTag[]>([]);
   const [technicianTimeouts, setTechnicianTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
@@ -108,6 +109,7 @@ const VehiclesTableView: React.FC = () => {
       notes: vehicle.notes || '',
       technician: vehicle.technician || '',
       laborHours: vehicle.laborHours?.toString() || '0',
+      folio: vehicle.folio || '',
     });
     setSelectedTags(vehicle.tags || []);
     setIsModalOpen(true);
@@ -128,6 +130,7 @@ const VehiclesTableView: React.FC = () => {
       notes: '',
       technician: '',
       laborHours: '0',
+      folio: '',
     });
     setSelectedTags([]);
   };
@@ -154,6 +157,7 @@ const VehiclesTableView: React.FC = () => {
       tags: selectedTags,
       technician: formData.technician,
       laborHours: parseFloat(formData.laborHours) || 0,
+      folio: formData.folio,
     };
 
     try {
@@ -212,6 +216,34 @@ const VehiclesTableView: React.FC = () => {
       } catch (error) {
         console.error('Error updating technician:', error);
         alert('Error al actualizar el técnico');
+      }
+
+      setTechnicianTimeouts(prev => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[id];
+        return newTimeouts;
+      });
+    }, 3000);
+
+    setTechnicianTimeouts(prev => ({ ...prev, [id]: timeoutId }));
+  };
+
+  const handleFolioChange = (id: string, folio: string) => {
+    setVehicles(prev => prev.map(v => v.id === id ? { ...v, folio } : v));
+
+    if (technicianTimeouts[id]) {
+      clearTimeout(technicianTimeouts[id]);
+    }
+
+    const timeoutId = setTimeout(async () => {
+      const vehicle = vehicles.find(v => v.id === id);
+      if (!vehicle) return;
+
+      try {
+        await updateVehicleInShop({ ...vehicle, folio });
+      } catch (error) {
+        console.error('Error updating folio:', error);
+        alert('Error al actualizar el folio');
       }
 
       setTechnicianTimeouts(prev => {
@@ -298,6 +330,9 @@ const VehiclesTableView: React.FC = () => {
                     Hrs MO
                   </th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    Folio
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                     Estado
                   </th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -348,6 +383,15 @@ const VehiclesTableView: React.FC = () => {
                           step="0.5"
                           min="0"
                           className="w-16 text-xs px-1.5 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <input
+                          type="text"
+                          value={vehicle.folio || ''}
+                          onChange={(e) => handleFolioChange(vehicle.id, e.target.value)}
+                          placeholder="# Factura"
+                          className="w-24 text-xs px-1.5 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </td>
                       <td className="px-2 py-2">

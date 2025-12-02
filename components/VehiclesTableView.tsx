@@ -39,6 +39,7 @@ const VehiclesTableView: React.FC = () => {
     laborHours: '0',
   });
   const [selectedTags, setSelectedTags] = useState<VehicleInShopTag[]>([]);
+  const [technicianTimeouts, setTechnicianTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
 
   const loadVehicles = async () => {
     try {
@@ -195,30 +196,60 @@ const VehiclesTableView: React.FC = () => {
     );
   };
 
-  const handleTechnicianChange = async (id: string, technician: string) => {
-    const vehicle = vehicles.find(v => v.id === id);
-    if (!vehicle) return;
+  const handleTechnicianChange = (id: string, technician: string) => {
+    setVehicles(prev => prev.map(v => v.id === id ? { ...v, technician } : v));
 
-    try {
-      await updateVehicleInShop({ ...vehicle, technician });
-      setVehicles(prev => prev.map(v => v.id === id ? { ...v, technician } : v));
-    } catch (error) {
-      console.error('Error updating technician:', error);
-      alert('Error al actualizar el técnico');
+    if (technicianTimeouts[id]) {
+      clearTimeout(technicianTimeouts[id]);
     }
+
+    const timeoutId = setTimeout(async () => {
+      const vehicle = vehicles.find(v => v.id === id);
+      if (!vehicle) return;
+
+      try {
+        await updateVehicleInShop({ ...vehicle, technician });
+      } catch (error) {
+        console.error('Error updating technician:', error);
+        alert('Error al actualizar el técnico');
+      }
+
+      setTechnicianTimeouts(prev => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[id];
+        return newTimeouts;
+      });
+    }, 3000);
+
+    setTechnicianTimeouts(prev => ({ ...prev, [id]: timeoutId }));
   };
 
-  const handleLaborHoursChange = async (id: string, laborHours: number) => {
-    const vehicle = vehicles.find(v => v.id === id);
-    if (!vehicle) return;
+  const handleLaborHoursChange = (id: string, laborHours: number) => {
+    setVehicles(prev => prev.map(v => v.id === id ? { ...v, laborHours } : v));
 
-    try {
-      await updateVehicleInShop({ ...vehicle, laborHours });
-      setVehicles(prev => prev.map(v => v.id === id ? { ...v, laborHours } : v));
-    } catch (error) {
-      console.error('Error updating labor hours:', error);
-      alert('Error al actualizar las horas de mano de obra');
+    if (technicianTimeouts[id]) {
+      clearTimeout(technicianTimeouts[id]);
     }
+
+    const timeoutId = setTimeout(async () => {
+      const vehicle = vehicles.find(v => v.id === id);
+      if (!vehicle) return;
+
+      try {
+        await updateVehicleInShop({ ...vehicle, laborHours });
+      } catch (error) {
+        console.error('Error updating labor hours:', error);
+        alert('Error al actualizar las horas de mano de obra');
+      }
+
+      setTechnicianTimeouts(prev => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[id];
+        return newTimeouts;
+      });
+    }, 3000);
+
+    setTechnicianTimeouts(prev => ({ ...prev, [id]: timeoutId }));
   };
 
   return (

@@ -201,25 +201,25 @@ const VehiclesTableView: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                     Vehículo
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    Servicio
+                  </th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                     Estado
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                     Ingreso
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                     Est. Entrega
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
                     Días
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Notas
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
                     Acciones
                   </th>
                 </tr>
@@ -232,40 +232,46 @@ const VehiclesTableView: React.FC = () => {
 
                   return (
                     <tr key={vehicle.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{vehicle.vehicle}</div>
+                      <td className="px-2 py-2">
+                        <div className="text-xs font-semibold text-gray-900">{vehicle.vehicle}</div>
+                        <div className="text-xs text-gray-500">{vehicle.customerName}</div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-2">
+                        <div className="text-xs text-gray-700 max-w-[150px] truncate" title={vehicle.service}>
+                          {vehicle.service}
+                        </div>
+                      </td>
+                      <td className="px-2 py-2">
                         <div className="flex flex-wrap gap-1">
                           {vehicle.tags && vehicle.tags.length > 0 ? (
                             vehicle.tags.map((tag) => (
                               <span
                                 key={tag}
-                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${TAG_COLORS[tag]}`}
+                                className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded-full border ${TAG_COLORS[tag]}`}
                               >
                                 {tag}
                               </span>
                             ))
                           ) : (
-                            <span className="text-sm text-gray-400">-</span>
+                            <span className="text-xs text-gray-400">-</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatDateTime(vehicle.checkInDate)}</div>
+                      <td className="px-2 py-2 whitespace-nowrap">
+                        <div className="text-xs text-gray-900">{formatDateTime(vehicle.checkInDate)}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap">
                         {vehicle.estimatedCompletion ? (
-                          <div className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
+                          <div className={`text-xs ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
                             {formatDateTime(vehicle.estimatedCompletion)}
                             {isOverdue && ' ⚠️'}
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400">-</span>
+                          <span className="text-xs text-gray-400">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-bold ${
+                      <td className="px-2 py-2 whitespace-nowrap text-center">
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${
                           daysInShop > 7 ? 'bg-red-100 text-red-800' :
                           daysInShop > 3 ? 'bg-yellow-100 text-yellow-800' :
                           'bg-green-100 text-green-800'
@@ -273,21 +279,16 @@ const VehiclesTableView: React.FC = () => {
                           {daysInShop}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-gray-600 max-w-xs truncate" title={vehicle.notes}>
-                          {vehicle.notes || '-'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-2 py-2 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-1">
                           {vehicle.deliveredAt ? (
-                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full border border-green-300">
+                            <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-800 rounded-full border border-green-300">
                               Entregado
                             </span>
                           ) : (
                             <button
                               onClick={() => handleMarkAsDelivered(vehicle.id)}
-                              className="p-1.5 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                              className="p-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                               title="Marcar como entregado"
                             >
                               <CheckIcon />
@@ -295,14 +296,14 @@ const VehiclesTableView: React.FC = () => {
                           )}
                           <button
                             onClick={() => handleOpenModal(vehicle)}
-                            className="p-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                            className="p-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                             title="Editar vehículo"
                           >
                             <PencilIcon />
                           </button>
                           <button
                             onClick={() => handleDelete(vehicle.id)}
-                            className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                            className="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
                             title="Eliminar vehículo"
                           >
                             <TrashIcon />

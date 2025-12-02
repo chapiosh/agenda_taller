@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VehicleInShopTag } from '../types';
 import { getVehiclesInShop, getDeliveredVehicles, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
+import { getVehicleComments, createVehicleComment, VehicleComment } from '../services/commentsService';
 import { parseLocalDate } from '../utils/dateUtils';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -41,6 +42,8 @@ const VehiclesTableView: React.FC = () => {
   });
   const [selectedTags, setSelectedTags] = useState<VehicleInShopTag[]>([]);
   const [technicianTimeouts, setTechnicianTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
+  const [comments, setComments] = useState<VehicleComment[]>([]);
+  const [newComment, setNewComment] = useState('');
 
   const loadVehicles = async () => {
     try {
@@ -92,7 +95,16 @@ const VehiclesTableView: React.FC = () => {
     });
   };
 
-  const handleOpenModal = (vehicle: VehicleInShop) => {
+  const loadComments = async (vehicleId: string) => {
+    try {
+      const data = await getVehicleComments(vehicleId);
+      setComments(data);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  };
+
+  const handleOpenModal = async (vehicle: VehicleInShop) => {
     setEditingVehicle(vehicle);
     const checkInDateTime = parseLocalDate(vehicle.checkInDate);
     const estimatedDateTime = vehicle.estimatedCompletion ? parseLocalDate(vehicle.estimatedCompletion) : null;
@@ -112,6 +124,7 @@ const VehiclesTableView: React.FC = () => {
       folio: vehicle.folio || '',
     });
     setSelectedTags(vehicle.tags || []);
+    await loadComments(vehicle.id);
     setIsModalOpen(true);
   };
 
@@ -133,6 +146,22 @@ const VehiclesTableView: React.FC = () => {
       folio: '',
     });
     setSelectedTags([]);
+    setComments([]);
+    setNewComment('');
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVehicle || !newComment.trim()) return;
+
+    try {
+      await createVehicleComment(editingVehicle.id, newComment.trim());
+      setNewComment('');
+      await loadComments(editingVehicle.id);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Error al agregar el comentario');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -622,6 +651,46 @@ const VehiclesTableView: React.FC = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={3}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Historial de Comentarios</label>
+            <div className="space-y-2 max-h-60 overflow-y-auto mb-3 bg-gray-50 rounded-lg p-3">
+              {comments.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-2">No hay comentarios aún</p>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="bg-white p-3 rounded border border-gray-200">
+                    <p className="text-sm text-gray-800">{comment.comment}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(comment.createdAt).toLocaleString('es-ES', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+            <form onSubmit={handleAddComment} className="flex gap-2">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Agregar comentario..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+              <button
+                type="submit"
+                disabled={!newComment.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                Agregar
+              </button>
+            </form>
           </div>
 
           <div className="flex gap-3 pt-4">

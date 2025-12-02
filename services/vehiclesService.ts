@@ -31,6 +31,32 @@ export const getVehiclesInShop = async (): Promise<VehicleInShop[]> => {
   }));
 };
 
+export const getDeliveredVehicles = async (): Promise<VehicleInShop[]> => {
+  const { data, error } = await supabase.rpc('rpc_get_delivered_vehicles');
+
+  if (error) {
+    console.error('Error fetching delivered vehicles:', error);
+    throw error;
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  return data.map((row: any) => ({
+    id: row.id,
+    customerName: row.customer_name,
+    vehicle: row.vehicle,
+    service: row.service,
+    contact: row.contact,
+    checkInDate: row.check_in_date,
+    estimatedCompletion: row.estimated_completion,
+    notes: row.notes,
+    tags: row.tags || [],
+    deliveredAt: row.delivered_at,
+  }));
+};
+
 export const createVehicleInShop = async (data: Omit<VehicleInShop, 'id'>): Promise<VehicleInShop> => {
   const { data: result, error } = await supabase.rpc('rpc_create_vehicle_in_shop', {
     p_customer_name: data.customerName,

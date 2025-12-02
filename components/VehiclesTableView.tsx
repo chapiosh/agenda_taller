@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VehicleInShopTag } from '../types';
-import { getVehiclesInShop, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
+import { getVehiclesInShop, getDeliveredVehicles, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
 import { parseLocalDate } from '../utils/dateUtils';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -24,6 +24,7 @@ const VehiclesTableView: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleInShop | null>(null);
+  const [showDelivered, setShowDelivered] = useState(false);
   const [formData, setFormData] = useState({
     customerName: '',
     vehicle: '',
@@ -39,13 +40,17 @@ const VehiclesTableView: React.FC = () => {
 
   const loadVehicles = async () => {
     try {
-      const data = await getVehiclesInShop();
+      const data = showDelivered ? await getDeliveredVehicles() : await getVehiclesInShop();
       setVehicles(data);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error loading vehicles:', error);
     }
   };
+
+  useEffect(() => {
+    loadVehicles();
+  }, [showDelivered]);
 
   useEffect(() => {
     loadVehicles();
@@ -186,14 +191,28 @@ const VehiclesTableView: React.FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Monitor de Vehículos</h2>
-        <div className="text-sm text-gray-500">
-          Última actualización: {formatLastUpdate()}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowDelivered(!showDelivered)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              showDelivered
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {showDelivered ? 'Ver en Taller' : 'Ver Entregados'}
+          </button>
+          <div className="text-sm text-gray-500">
+            Última actualización: {formatLastUpdate()}
+          </div>
         </div>
       </div>
 
       {vehicles.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-500 text-lg">No hay vehículos en el taller</p>
+          <p className="text-gray-500 text-lg">
+            {showDelivered ? 'No hay vehículos entregados' : 'No hay vehículos en el taller'}
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -281,33 +300,35 @@ const VehiclesTableView: React.FC = () => {
                       </td>
                       <td className="px-2 py-2 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-1">
-                          {vehicle.deliveredAt ? (
+                          {showDelivered ? (
                             <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-800 rounded-full border border-green-300">
-                              Entregado
+                              {vehicle.deliveredAt ? new Date(vehicle.deliveredAt).toLocaleDateString() : 'Entregado'}
                             </span>
                           ) : (
-                            <button
-                              onClick={() => handleMarkAsDelivered(vehicle.id)}
-                              className="p-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-                              title="Marcar como entregado"
-                            >
-                              <CheckIcon />
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleMarkAsDelivered(vehicle.id)}
+                                className="p-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                                title="Marcar como entregado"
+                              >
+                                <CheckIcon />
+                              </button>
+                              <button
+                                onClick={() => handleOpenModal(vehicle)}
+                                className="p-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                                title="Editar vehículo"
+                              >
+                                <PencilIcon />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(vehicle.id)}
+                                className="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                                title="Eliminar vehículo"
+                              >
+                                <TrashIcon />
+                              </button>
+                            </>
                           )}
-                          <button
-                            onClick={() => handleOpenModal(vehicle)}
-                            className="p-1 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                            title="Editar vehículo"
-                          >
-                            <PencilIcon />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(vehicle.id)}
-                            className="p-1 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                            title="Eliminar vehículo"
-                          >
-                            <TrashIcon />
-                          </button>
                         </div>
                       </td>
                     </tr>

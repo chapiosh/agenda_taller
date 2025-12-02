@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VehicleInShopTag } from '../types';
 import { getVehiclesInShop, getDeliveredVehicles, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
-import { getVehicleComments, createVehicleComment, VehicleComment } from '../services/commentsService';
+import { getVehicleComments } from '../services/commentsService';
 import { parseLocalDate } from '../utils/dateUtils';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import Modal from './Modal';
+import CommentsModal from './CommentsModal';
 import { VEHICLE_IN_SHOP_TAGS } from '../types';
 
 const TAG_COLORS: Record<VehicleInShopTag, string> = {
@@ -42,14 +43,27 @@ const VehiclesTableView: React.FC = () => {
   });
   const [selectedTags, setSelectedTags] = useState<VehicleInShopTag[]>([]);
   const [technicianTimeouts, setTechnicianTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
-  const [comments, setComments] = useState<VehicleComment[]>([]);
-  const [newComment, setNewComment] = useState('');
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [selectedVehicleForComments, setSelectedVehicleForComments] = useState<VehicleInShop | null>(null);
 
   const loadVehicles = async () => {
     try {
       const data = showDelivered ? await getDeliveredVehicles() : await getVehiclesInShop();
       setVehicles(data);
       setLastUpdate(new Date());
+
+      const counts: Record<string, number> = {};
+      for (const vehicle of data) {
+        try {
+          const comments = await getVehicleComments(vehicle.id);
+          counts[vehicle.id] = comments.length;
+        } catch (error) {
+          console.error(`Error loading comments for vehicle ${vehicle.id}:`, error);
+          counts[vehicle.id] = 0;
+        }
+      }
+      setCommentCounts(counts);
     } catch (error) {
       console.error('Error loading vehicles:', error);
     }
@@ -95,15 +109,6 @@ const VehiclesTableView: React.FC = () => {
     });
   };
 
-  const loadComments = async (vehicleId: string) => {
-    try {
-      const data = await getVehicleComments(vehicleId);
-      setComments(data);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    }
-  };
-
   const handleOpenModal = async (vehicle: VehicleInShop) => {
     setEditingVehicle(vehicle);
     const checkInDateTime = parseLocalDate(vehicle.checkInDate);
@@ -124,8 +129,18 @@ const VehiclesTableView: React.FC = () => {
       folio: vehicle.folio || '',
     });
     setSelectedTags(vehicle.tags || []);
-    await loadComments(vehicle.id);
     setIsModalOpen(true);
+  };
+
+  const handleOpenCommentsModal = (vehicle: VehicleInShop) => {
+    setSelectedVehicleForComments(vehicle);
+    setIsCommentsModalOpen(true);
+  };
+
+  const handleCloseCommentsModal = async () => {
+    setIsCommentsModalOpen(false);
+    setSelectedVehicleForComments(null);
+    await loadVehicles();
   };
 
   const handleCloseModal = () => {
@@ -146,22 +161,6 @@ const VehiclesTableView: React.FC = () => {
       folio: '',
     });
     setSelectedTags([]);
-    setComments([]);
-    setNewComment('');
-  };
-
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingVehicle || !newComment.trim()) return;
-
-    try {
-      await createVehicleComment(editingVehicle.id, newComment.trim());
-      setNewComment('');
-      await loadComments(editingVehicle.id);
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      alert('Error al agregar el comentario');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -374,6 +373,9 @@ const VehiclesTableView: React.FC = () => {
                     Días
                   </th>
                   <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                    Comentarios
+                  </th>
+                  <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">
                     Acciones
                   </th>
                 </tr>
@@ -460,6 +462,19 @@ const VehiclesTableView: React.FC = () => {
                         }`}>
                           {daysInShop}
                         </span>
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-center">
+                        <button
+                          onClick={() => handleOpenCommentsModal(vehicle)}
+                          className={`inline-flex items-center justify-center w-10 h-8 rounded-full text-xs font-bold transition-colors ${
+                            (commentCounts[vehicle.id] || 0) > 0
+                              ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title="Ver comentarios"
+                        >
+                          {commentCounts[vehicle.id] || 0}
+                        </button>
                       </td>
                       <td className="px-2 py-2 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-1">
@@ -653,46 +668,6 @@ const VehiclesTableView: React.FC = () => {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Historial de Comentarios</label>
-            <div className="space-y-2 max-h-60 overflow-y-auto mb-3 bg-gray-50 rounded-lg p-3">
-              {comments.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-2">No hay comentarios aún</p>
-              ) : (
-                comments.map((comment) => (
-                  <div key={comment.id} className="bg-white p-3 rounded border border-gray-200">
-                    <p className="text-sm text-gray-800">{comment.comment}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(comment.createdAt).toLocaleString('es-ES', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-            <form onSubmit={handleAddComment} className="flex gap-2">
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Agregar comentario..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-              <button
-                type="submit"
-                disabled={!newComment.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
-              >
-                Agregar
-              </button>
-            </form>
-          </div>
-
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
@@ -710,6 +685,15 @@ const VehiclesTableView: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {selectedVehicleForComments && (
+        <CommentsModal
+          isOpen={isCommentsModalOpen}
+          onClose={handleCloseCommentsModal}
+          vehicleId={selectedVehicleForComments.id}
+          vehicleName={`${selectedVehicleForComments.vehicle} - ${selectedVehicleForComments.customerName}`}
+        />
+      )}
     </div>
   );
 };

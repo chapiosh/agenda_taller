@@ -314,12 +314,12 @@ const VehiclesTableView: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <h2 className="text-2xl font-bold text-gray-800">Monitor de Vehículos</h2>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => setShowDelivered(!showDelivered)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`w-full sm:w-auto px-4 py-2 rounded-lg font-medium transition-colors ${
               showDelivered
                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -340,7 +340,8 @@ const VehiclesTableView: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <>
+          <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -516,6 +517,123 @@ const VehiclesTableView: React.FC = () => {
             </table>
           </div>
         </div>
+
+          <div className="md:hidden space-y-3">
+            {vehicles.map((vehicle) => {
+              const daysInShop = calculateDaysInShop(vehicle.checkInDate);
+              const isOverdue = vehicle.estimatedCompletion &&
+                parseLocalDate(vehicle.estimatedCompletion) < new Date();
+
+              return (
+                <div key={vehicle.id} className="bg-white rounded-lg shadow p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900">{vehicle.vehicle}</h3>
+                      <p className="text-sm text-gray-600">{vehicle.customerName}</p>
+                      {vehicle.folio && (
+                        <p className="text-xs text-gray-500 mt-1">Folio: {vehicle.folio}</p>
+                      )}
+                    </div>
+                    <div className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${
+                      daysInShop > 7 ? 'bg-red-100 text-red-800' :
+                      daysInShop > 3 ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {daysInShop}d
+                    </div>
+                  </div>
+
+                  <div className="text-sm text-gray-700">
+                    <p className="font-medium">Servicio:</p>
+                    <p className="text-gray-600">{vehicle.service}</p>
+                  </div>
+
+                  {vehicle.technician && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Técnico:</span>
+                      <span className="font-medium text-gray-900">{vehicle.technician}</span>
+                    </div>
+                  )}
+
+                  {vehicle.laborHours !== undefined && vehicle.laborHours > 0 && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Hrs MO:</span>
+                      <span className="font-medium text-gray-900">{vehicle.laborHours}</span>
+                    </div>
+                  )}
+
+                  {vehicle.tags && vehicle.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {vehicle.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full border ${TAG_COLORS[tag]}`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-200">
+                    <div>
+                      <p>Ingreso: {formatDateTime(vehicle.checkInDate)}</p>
+                      {vehicle.estimatedCompletion && (
+                        <p className={isOverdue ? 'text-red-600 font-semibold' : ''}>
+                          Est: {formatDateTime(vehicle.estimatedCompletion)}
+                          {isOverdue && ' ⚠️'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => handleOpenCommentsModal(vehicle)}
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        (commentCounts[vehicle.id] || 0) > 0
+                          ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <span>💬</span>
+                      <span>{commentCounts[vehicle.id] || 0}</span>
+                    </button>
+                    {showDelivered ? (
+                      <div className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium bg-green-100 text-green-800 rounded-lg">
+                        Entregado
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleMarkAsDelivered(vehicle.id)}
+                          className="px-3 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                          title="Marcar como entregado"
+                        >
+                          <CheckIcon />
+                        </button>
+                        <button
+                          onClick={() => handleOpenModal(vehicle)}
+                          className="px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                          title="Editar vehículo"
+                        >
+                          <PencilIcon />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(vehicle.id)}
+                          className="px-3 py-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                          title="Eliminar vehículo"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       <div className="text-xs text-gray-500 text-center">

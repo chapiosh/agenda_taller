@@ -6,6 +6,7 @@ import { parseLocalDate } from '../utils/dateUtils';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { CheckIcon } from './icons/CheckIcon';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import Modal from './Modal';
 import CommentsModal from './CommentsModal';
 import { VEHICLE_IN_SHOP_TAGS } from '../types';
@@ -220,6 +221,19 @@ const VehiclesTableView: React.FC = () => {
         alert('Error al eliminar el vehículo');
       }
     }
+  };
+
+  const handleSendWhatsApp = (vehicle: VehicleInShop) => {
+    if (!vehicle.contact) {
+      alert('No hay número de contacto para este vehículo');
+      return;
+    }
+
+    const phoneNumber = vehicle.contact.replace(/\D/g, '');
+    const message = `Hola ${vehicle.customerName}, le escribimos del taller respecto a su vehículo ${vehicle.vehicle}.`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, '_blank');
   };
 
   const toggleTag = (tag: VehicleInShopTag) => {
@@ -486,6 +500,13 @@ const VehiclesTableView: React.FC = () => {
                           ) : (
                             <>
                               <button
+                                onClick={() => handleSendWhatsApp(vehicle)}
+                                className="p-1 rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors"
+                                title="Enviar WhatsApp"
+                              >
+                                <WhatsAppIcon />
+                              </button>
+                              <button
                                 onClick={() => handleMarkAsDelivered(vehicle.id)}
                                 className="p-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                                 title="Marcar como entregado"
@@ -605,6 +626,13 @@ const VehiclesTableView: React.FC = () => {
                       </div>
                     ) : (
                       <>
+                        <button
+                          onClick={() => handleSendWhatsApp(vehicle)}
+                          className="px-3 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
+                          title="Enviar WhatsApp"
+                        >
+                          <WhatsAppIcon />
+                        </button>
                         <button
                           onClick={() => handleMarkAsDelivered(vehicle.id)}
                           className="px-3 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"

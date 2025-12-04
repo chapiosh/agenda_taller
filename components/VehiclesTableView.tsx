@@ -22,6 +22,41 @@ const TAG_COLORS: Record<VehicleInShopTag, string> = {
   'garantía': 'bg-red-100 text-red-800 border-red-300',
 };
 
+interface SortableHeaderProps {
+  field: keyof VehicleInShop | 'daysInShop';
+  currentSortField: keyof VehicleInShop | 'daysInShop';
+  currentSortDirection: 'asc' | 'desc';
+  onClick: (field: keyof VehicleInShop | 'daysInShop') => void;
+  children: React.ReactNode;
+  align?: 'left' | 'center';
+}
+
+const SortableHeader: React.FC<SortableHeaderProps> = ({
+  field,
+  currentSortField,
+  currentSortDirection,
+  onClick,
+  children,
+  align = 'left'
+}) => {
+  const isActive = currentSortField === field;
+  const textAlign = align === 'center' ? 'text-center' : 'text-left';
+
+  return (
+    <th
+      className={`px-2 py-2 ${textAlign} text-xs font-medium text-white uppercase cursor-pointer hover:bg-blue-700 transition-colors select-none`}
+      onClick={() => onClick(field)}
+    >
+      <div className={`flex items-center gap-1 ${align === 'center' ? 'justify-center' : ''}`}>
+        <span>{children}</span>
+        <span className="text-white text-xs">
+          {isActive ? (currentSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+        </span>
+      </div>
+    </th>
+  );
+};
+
 const VehiclesTableView: React.FC = () => {
   const [vehicles, setVehicles] = useState<VehicleInShop[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -47,6 +82,8 @@ const VehiclesTableView: React.FC = () => {
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [selectedVehicleForComments, setSelectedVehicleForComments] = useState<VehicleInShop | null>(null);
+  const [sortField, setSortField] = useState<keyof VehicleInShop | 'daysInShop'>('checkInDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const loadVehicles = async () => {
     try {
@@ -236,6 +273,47 @@ const VehiclesTableView: React.FC = () => {
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleSort = (field: keyof VehicleInShop | 'daysInShop') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortedVehicles = () => {
+    const sorted = [...vehicles].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      if (sortField === 'daysInShop') {
+        aValue = calculateDaysInShop(a.checkInDate);
+        bValue = calculateDaysInShop(b.checkInDate);
+      } else {
+        aValue = a[sortField];
+        bValue = b[sortField];
+      }
+
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return sorted;
+  };
+
   const toggleTag = (tag: VehicleInShopTag) => {
     setSelectedTags(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
@@ -360,33 +438,80 @@ const VehiclesTableView: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-blue-600">
                 <tr>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  <SortableHeader
+                    field="vehicle"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Vehículo
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="service"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Servicio
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="technician"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Técnico
-                  </th>
-                  <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="laborHours"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                    align="center"
+                  >
                     Hrs MO
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="folio"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Folio
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="tags"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Estado
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="checkInDate"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Ingreso
-                  </th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="estimatedCompletion"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                  >
                     Est. Entrega
-                  </th>
-                  <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
+                  </SortableHeader>
+                  <SortableHeader
+                    field="daysInShop"
+                    currentSortField={sortField}
+                    currentSortDirection={sortDirection}
+                    onClick={handleSort}
+                    align="center"
+                  >
                     Días
-                  </th>
+                  </SortableHeader>
                   <th className="px-2 py-2 text-center text-xs font-medium text-white uppercase">
                     Comentarios
                   </th>
@@ -396,7 +521,7 @@ const VehiclesTableView: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {vehicles.map((vehicle) => {
+                {getSortedVehicles().map((vehicle) => {
                   const daysInShop = calculateDaysInShop(vehicle.checkInDate);
                   const isOverdue = vehicle.estimatedCompletion &&
                     parseLocalDate(vehicle.estimatedCompletion) < new Date();
@@ -540,7 +665,7 @@ const VehiclesTableView: React.FC = () => {
         </div>
 
           <div className="md:hidden space-y-3">
-            {vehicles.map((vehicle) => {
+            {getSortedVehicles().map((vehicle) => {
               const daysInShop = calculateDaysInShop(vehicle.checkInDate);
               const isOverdue = vehicle.estimatedCompletion &&
                 parseLocalDate(vehicle.estimatedCompletion) < new Date();

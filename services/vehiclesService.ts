@@ -159,3 +159,14 @@ export const markVehicleAsDelivered = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+export const convertVehicleToAppointment = async (id: string): Promise<void> => {
+  const { error } = await supabase.rpc('convert_vehicle_to_appointment', {
+    vehicle_id: id
+  });
+
+  if (error) {
+    console.error('Error converting vehicle to appointment:', error);
+    throw error;
+  }
+};

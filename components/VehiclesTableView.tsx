@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { VehicleInShop, VehicleInShopTag } from '../types';
-import { getVehiclesInShop, getDeliveredVehicles, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered } from '../services/vehiclesService';
+import { getVehiclesInShop, getDeliveredVehicles, updateVehicleInShop, deleteVehicleInShop, markVehicleAsDelivered, convertVehicleToAppointment } from '../services/vehiclesService';
 import { getVehicleComments } from '../services/commentsService';
 import { parseLocalDate } from '../utils/dateUtils';
 import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { UndoIcon } from './icons/UndoIcon';
 import Modal from './Modal';
 import CommentsModal from './CommentsModal';
 import { VEHICLE_IN_SHOP_TAGS } from '../types';
@@ -256,6 +257,18 @@ const VehiclesTableView: React.FC = () => {
       } catch (error) {
         console.error('Error deleting vehicle:', error);
         alert('Error al eliminar el vehículo');
+      }
+    }
+  };
+
+  const handleConvertToAppointment = async (id: string) => {
+    if (window.confirm('¿Regresar este vehículo a la lista de citas?')) {
+      try {
+        await convertVehicleToAppointment(id);
+        await loadVehicles();
+      } catch (error) {
+        console.error('Error converting vehicle to appointment:', error);
+        alert('Error al convertir el vehículo a cita');
       }
     }
   };
@@ -632,6 +645,13 @@ const VehiclesTableView: React.FC = () => {
                                 <WhatsAppIcon />
                               </button>
                               <button
+                                onClick={() => handleConvertToAppointment(vehicle.id)}
+                                className="p-1 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors"
+                                title="Regresar a citas"
+                              >
+                                <UndoIcon />
+                              </button>
+                              <button
                                 onClick={() => handleMarkAsDelivered(vehicle.id)}
                                 className="p-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                                 title="Marcar como entregado"
@@ -757,6 +777,13 @@ const VehiclesTableView: React.FC = () => {
                           title="Enviar WhatsApp"
                         >
                           <WhatsAppIcon />
+                        </button>
+                        <button
+                          onClick={() => handleConvertToAppointment(vehicle.id)}
+                          className="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 transition-colors"
+                          title="Regresar a citas"
+                        >
+                          <UndoIcon />
                         </button>
                         <button
                           onClick={() => handleMarkAsDelivered(vehicle.id)}

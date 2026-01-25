@@ -27,7 +27,30 @@ Deno.serve(async (req: Request) => {
 
     if (segments[0] === "appointments") {
       if (method === "GET" && segments.length === 1) {
-        const { data, error } = await supabase.rpc("rpc_get_appointments");
+        const date = url.searchParams.get("date");
+        const startDate = url.searchParams.get("start_date");
+        const endDate = url.searchParams.get("end_date");
+        const status = url.searchParams.get("status");
+
+        let query = supabase.from("appointments").select("*");
+
+        if (date) {
+          query = query.gte("date", `${date}T00:00:00Z`).lt("date", `${date}T23:59:59Z`);
+        } else if (startDate && endDate) {
+          query = query.gte("date", `${startDate}T00:00:00Z`).lte("date", `${endDate}T23:59:59Z`);
+        } else if (startDate) {
+          query = query.gte("date", `${startDate}T00:00:00Z`);
+        } else if (endDate) {
+          query = query.lte("date", `${endDate}T23:59:59Z`);
+        }
+
+        if (status) {
+          query = query.eq("status", status);
+        }
+
+        query = query.order("date", { ascending: true });
+
+        const { data, error } = await query;
         if (error) throw error;
 
         return new Response(JSON.stringify(data || []), {

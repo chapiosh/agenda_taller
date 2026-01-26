@@ -84,9 +84,8 @@ Deno.serve(async (req: Request) => {
           p_customer_name: body.customer_name,
           p_vehicle: body.vehicle,
           p_service: body.service,
-          p_contact: body.contact,
           p_date: body.date,
-          p_status: body.status || "Scheduled",
+          p_contact: body.contact,
           p_tags: body.tags || [],
         });
 

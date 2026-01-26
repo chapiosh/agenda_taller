@@ -5,7 +5,7 @@ API REST para gestionar citas y vehículos en el taller mecánico.
 ## URL Base
 
 ```
-https://[your-supabase-project].supabase.co/functions/v1/api
+https://fquuajdbnlipavxiaqah.supabase.co/functions/v1/api
 ```
 
 ## Autenticación

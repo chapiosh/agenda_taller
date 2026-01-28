@@ -39,7 +39,7 @@ export const createVehicleComment = async (
 ): Promise<VehicleComment> => {
   const { data: result, error } = await supabase.rpc('rpc_create_vehicle_comment', {
     p_vehicle_id: vehicleId,
-    p_comment: comment,
+    p_comment_text: comment,
   });
 
   if (error) {

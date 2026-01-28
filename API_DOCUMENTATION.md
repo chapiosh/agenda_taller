@@ -28,6 +28,18 @@ Content-Type: application/json
 
 Retorna todas las citas programadas.
 
+**Parámetros de consulta opcionales:**
+- `date` (string, formato YYYY-MM-DD) - Filtra citas de una fecha específica
+- `start_date` (string, formato YYYY-MM-DD) - Filtra citas desde esta fecha
+- `end_date` (string, formato YYYY-MM-DD) - Filtra citas hasta esta fecha
+- `status` (string) - Filtra por estado (Scheduled, Completed, Canceled)
+
+**Ejemplos de uso:**
+- `/api/appointments` - Todas las citas
+- `/api/appointments?date=2025-01-25` - Citas del 25 de enero de 2025
+- `/api/appointments?start_date=2025-01-20&end_date=2025-01-27` - Citas en un rango
+- `/api/appointments?status=Scheduled` - Solo citas programadas
+
 **Respuesta exitosa (200):**
 ```json
 [
@@ -561,7 +573,20 @@ Retorna estadísticas generales del taller.
 
 ### Obtener todas las citas
 ```bash
+# Todas las citas
 curl -X GET https://[your-project].supabase.co/functions/v1/api/appointments \
+  -H "Content-Type: application/json"
+
+# Citas de una fecha específica
+curl -X GET "https://[your-project].supabase.co/functions/v1/api/appointments?date=2025-01-25" \
+  -H "Content-Type: application/json"
+
+# Citas en un rango de fechas
+curl -X GET "https://[your-project].supabase.co/functions/v1/api/appointments?start_date=2025-01-20&end_date=2025-01-27" \
+  -H "Content-Type: application/json"
+
+# Solo citas programadas
+curl -X GET "https://[your-project].supabase.co/functions/v1/api/appointments?status=Scheduled" \
   -H "Content-Type: application/json"
 ```
 
@@ -606,9 +631,22 @@ curl -X POST https://[your-project].supabase.co/functions/v1/api/vehicles/[vehic
 
 ### Obtener todas las citas
 ```javascript
+// Todas las citas
 const response = await fetch('https://[your-project].supabase.co/functions/v1/api/appointments');
 const appointments = await response.json();
 console.log(appointments);
+
+// Citas de una fecha específica
+const responseByDate = await fetch('https://[your-project].supabase.co/functions/v1/api/appointments?date=2025-01-25');
+const appointmentsByDate = await responseByDate.json();
+
+// Citas en un rango
+const responseByRange = await fetch('https://[your-project].supabase.co/functions/v1/api/appointments?start_date=2025-01-20&end_date=2025-01-27');
+const appointmentsByRange = await responseByRange.json();
+
+// Solo citas programadas
+const responseByStatus = await fetch('https://[your-project].supabase.co/functions/v1/api/appointments?status=Scheduled');
+const scheduledAppointments = await responseByStatus.json();
 ```
 
 ### Crear una nueva cita

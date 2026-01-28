@@ -190,19 +190,34 @@ Deno.serve(async (req: Request) => {
 
       if (method === "PUT" && segments.length === 2) {
         const body = await req.json();
+
+        const { data: currentVehicle, error: fetchError } = await supabase
+          .from("vehicles_in_shop")
+          .select("*")
+          .eq("id", segments[1])
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+        if (!currentVehicle) {
+          return new Response(JSON.stringify({ error: "Vehicle not found" }), {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
         const { data, error } = await supabase.rpc("rpc_update_vehicle_in_shop", {
           p_id: segments[1],
-          p_customer_name: body.customer_name,
-          p_vehicle: body.vehicle,
-          p_service: body.service,
-          p_contact: body.contact,
-          p_check_in_date: body.check_in_date,
-          p_estimated_completion: body.estimated_completion || null,
-          p_notes: body.notes || "",
-          p_tags: body.tags || [],
-          p_technician: body.technician || null,
-          p_labor_hours: body.labor_hours || 0,
-          p_folio: body.folio || null,
+          p_customer_name: body.customer_name ?? currentVehicle.customer_name,
+          p_vehicle: body.vehicle ?? currentVehicle.vehicle,
+          p_service: body.service ?? currentVehicle.service,
+          p_contact: body.contact ?? currentVehicle.contact,
+          p_check_in_date: body.check_in_date ?? currentVehicle.check_in_date,
+          p_estimated_completion: body.estimated_completion !== undefined ? body.estimated_completion : currentVehicle.estimated_completion,
+          p_notes: body.notes !== undefined ? body.notes : currentVehicle.notes,
+          p_tags: body.tags ?? currentVehicle.tags,
+          p_technician: body.technician !== undefined ? body.technician : currentVehicle.technician,
+          p_labor_hours: body.labor_hours !== undefined ? body.labor_hours : currentVehicle.labor_hours,
+          p_folio: body.folio !== undefined ? body.folio : currentVehicle.folio,
         });
 
         if (error) throw error;

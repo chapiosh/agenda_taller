@@ -249,6 +249,46 @@ Ver [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) para documentación completa.
 - Sanitización de inputs
 - CORS configurado
 
+## MCP Server (Model Context Protocol)
+
+El proyecto incluye un servidor MCP que permite a asistentes de IA (como Claude) interactuar con el sistema.
+
+### Ubicación
+```
+mcp-server/
+```
+
+### Características
+- 12 herramientas MCP para gestionar citas, vehículos, refacciones y cotizaciones
+- Comunicación vía stdio (standard input/output)
+- Wrapper TypeScript sobre la REST API existente
+- Sin estado, todas las operaciones se delegan a la API REST
+
+### Instalación del MCP Server
+
+```bash
+cd mcp-server
+npm install
+npm run build
+```
+
+### Configuración en Claude Desktop
+
+Agregar a `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "mechanic-shop": {
+      "command": "node",
+      "args": ["/ruta/completa/a/mcp-server/dist/index.js"]
+    }
+  }
+}
+```
+
+Ver [mcp-server/README.md](./mcp-server/README.md) para documentación completa del MCP server.
+
 ## Contribuir
 
 1. Fork el proyecto

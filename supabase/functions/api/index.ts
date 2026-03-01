@@ -144,7 +144,7 @@ Deno.serve(async (req: Request) => {
         });
       }
 
-      if (method === "GET" && segments.length === 2) {
+      if (method === "GET" && segments.length === 2 && segments[1] !== "workflow") {
         const { data, error } = await supabase
           .from("vehicles_in_shop")
           .select("*")

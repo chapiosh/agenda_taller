@@ -532,6 +532,296 @@ Agrega un nuevo comentario a un vehículo.
 
 ---
 
+### 10. Obtener refacciones de un vehículo
+
+**GET** `/api/vehicles/{id}/parts`
+
+Retorna todas las refacciones asociadas a un vehículo.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del vehículo
+
+**Respuesta exitosa (200):**
+```json
+[
+  {
+    "id": "uuid",
+    "vehicle_id": "uuid-vehiculo",
+    "description": "Bomba de agua",
+    "oem_part_number": "19200-P2A-000",
+    "alternative_part_numbers": ["WP-9158", "AW9381"],
+    "supplier": "Proveedor A",
+    "supplier_quote": 850.00,
+    "purchase_price": 800.00,
+    "sell_price": 1200.00,
+    "status": "installed",
+    "ordered_at": "2025-01-21T10:00:00Z",
+    "received_at": "2025-01-23T14:00:00Z",
+    "installed_at": "2025-01-24T11:00:00Z",
+    "notes": "Parte original Honda",
+    "created_at": "2025-01-21T09:30:00Z",
+    "updated_at": "2025-01-24T11:00:00Z"
+  }
+]
+```
+
+**Posibles valores de status:**
+- `quoted` - Cotizada
+- `ordered` - Pedida
+- `in_transit` - En tránsito
+- `received` - Recibida en el taller
+- `installed` - Instalada en el vehículo
+- `returned` - Devuelta al proveedor
+- `canceled` - Cancelada/no se usó
+
+---
+
+### 11. Agregar refacción a un vehículo
+
+**POST** `/api/vehicles/{id}/parts`
+
+Agrega una nueva refacción a un vehículo.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del vehículo
+
+**Body (JSON):**
+```json
+{
+  "description": "Bomba de agua",
+  "oem_part_number": "19200-P2A-000",
+  "alternative_part_numbers": ["WP-9158", "AW9381"],
+  "supplier": "Proveedor A",
+  "supplier_quote": 850.00,
+  "purchase_price": 800.00,
+  "sell_price": 1200.00,
+  "status": "quoted",
+  "ordered_at": "2025-01-21T10:00:00",
+  "received_at": null,
+  "installed_at": null,
+  "notes": "Parte original Honda"
+}
+```
+
+**Campos requeridos:**
+- `description` (string)
+
+**Campos opcionales:**
+- `oem_part_number` (string)
+- `alternative_part_numbers` (array de strings)
+- `supplier` (string)
+- `supplier_quote` (number, must be >= 0)
+- `purchase_price` (number, must be >= 0)
+- `sell_price` (number, must be >= 0)
+- `status` (string, default: "quoted")
+- `ordered_at` (string, formato ISO 8601)
+- `received_at` (string, formato ISO 8601)
+- `installed_at` (string, formato ISO 8601)
+- `notes` (string)
+
+**Respuesta exitosa (201):**
+```json
+{
+  "id": "uuid-generado",
+  "vehicle_id": "uuid-vehiculo",
+  "description": "Bomba de agua",
+  "oem_part_number": "19200-P2A-000",
+  "alternative_part_numbers": ["WP-9158", "AW9381"],
+  "supplier": "Proveedor A",
+  "supplier_quote": 850.00,
+  "purchase_price": 800.00,
+  "sell_price": 1200.00,
+  "status": "quoted",
+  "ordered_at": "2025-01-21T10:00:00",
+  "received_at": null,
+  "installed_at": null,
+  "notes": "Parte original Honda",
+  "created_at": "2025-01-21T09:30:00Z",
+  "updated_at": "2025-01-21T09:30:00Z"
+}
+```
+
+**Respuesta de error (400):**
+```json
+{
+  "error": "Invalid status value"
+}
+```
+
+---
+
+### 12. Obtener refacción específica
+
+**GET** `/api/vehicles/{vehicle_id}/parts/{part_id}`
+
+Retorna los detalles de una refacción específica.
+
+**Parámetros:**
+- `vehicle_id` (string, UUID) - ID del vehículo
+- `part_id` (string, UUID) - ID de la refacción
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "vehicle_id": "uuid-vehiculo",
+  "description": "Bomba de agua",
+  "oem_part_number": "19200-P2A-000",
+  "alternative_part_numbers": ["WP-9158", "AW9381"],
+  "supplier": "Proveedor A",
+  "supplier_quote": 850.00,
+  "purchase_price": 800.00,
+  "sell_price": 1200.00,
+  "status": "received",
+  "ordered_at": "2025-01-21T10:00:00Z",
+  "received_at": "2025-01-23T14:00:00Z",
+  "installed_at": null,
+  "notes": "Parte original Honda",
+  "created_at": "2025-01-21T09:30:00Z",
+  "updated_at": "2025-01-23T14:00:00Z"
+}
+```
+
+**Respuesta de error (404):**
+```json
+{
+  "error": "Part not found"
+}
+```
+
+---
+
+### 13. Actualizar refacción
+
+**PUT** `/api/vehicles/{vehicle_id}/parts/{part_id}`
+
+Actualiza la información de una refacción.
+
+**Parámetros:**
+- `vehicle_id` (string, UUID) - ID del vehículo
+- `part_id` (string, UUID) - ID de la refacción
+
+**Body (JSON):** Todos los campos son opcionales
+```json
+{
+  "description": "Bomba de agua original",
+  "oem_part_number": "19200-P2A-000",
+  "alternative_part_numbers": ["WP-9158", "AW9381"],
+  "supplier": "Proveedor A",
+  "supplier_quote": 850.00,
+  "purchase_price": 780.00,
+  "sell_price": 1200.00,
+  "status": "installed",
+  "ordered_at": "2025-01-21T10:00:00",
+  "received_at": "2025-01-23T14:00:00",
+  "installed_at": "2025-01-24T11:00:00",
+  "notes": "Parte original Honda - instalada"
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "vehicle_id": "uuid-vehiculo",
+  "description": "Bomba de agua original",
+  "oem_part_number": "19200-P2A-000",
+  "alternative_part_numbers": ["WP-9158", "AW9381"],
+  "supplier": "Proveedor A",
+  "supplier_quote": 850.00,
+  "purchase_price": 780.00,
+  "sell_price": 1200.00,
+  "status": "installed",
+  "ordered_at": "2025-01-21T10:00:00Z",
+  "received_at": "2025-01-23T14:00:00Z",
+  "installed_at": "2025-01-24T11:00:00Z",
+  "notes": "Parte original Honda - instalada",
+  "created_at": "2025-01-21T09:30:00Z",
+  "updated_at": "2025-01-24T11:00:00Z"
+}
+```
+
+---
+
+### 14. Eliminar refacción
+
+**DELETE** `/api/vehicles/{vehicle_id}/parts/{part_id}`
+
+Elimina una refacción del sistema.
+
+**Parámetros:**
+- `vehicle_id` (string, UUID) - ID del vehículo
+- `part_id` (string, UUID) - ID de la refacción
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+### 15. Obtener flujo de trabajo del taller
+
+**GET** `/api/vehicles/workflow`
+
+Retorna vehículos agrupados por etapa del flujo de trabajo en el taller.
+
+**Respuesta exitosa (200):**
+```json
+{
+  "en_diagnostico": [
+    {
+      "id": "uuid",
+      "customer_name": "Pedro López",
+      "vehicle": "Ford Focus 2018",
+      "service": "Diagnóstico de motor",
+      "contact": "5551112233",
+      "check_in_date": "2025-01-25T08:00:00",
+      "estimated_completion": null,
+      "notes": "Cliente reporta ruido extraño",
+      "tags": ["en diagnóstico"],
+      "technician": "Juan Ramírez",
+      "labor_hours": 0,
+      "folio": "TM-2025-003",
+      "delivered_at": null,
+      "created_at": "2025-01-25T08:00:00Z",
+      "updated_at": "2025-01-25T08:00:00Z"
+    }
+  ],
+  "esperando_aprobacion": [],
+  "esperando_refacciones": [
+    {
+      "id": "uuid",
+      "customer_name": "María García",
+      "vehicle": "Honda Civic 2019",
+      "service": "Reparación de transmisión",
+      "contact": "5559876543",
+      "check_in_date": "2025-01-20T09:00:00",
+      "estimated_completion": "2025-01-27T17:00:00",
+      "notes": "Esperando bomba de agua",
+      "tags": ["esperando refacciones"],
+      "technician": "Carlos Méndez",
+      "labor_hours": 8.5,
+      "folio": "TM-2025-001",
+      "delivered_at": null,
+      "created_at": "2025-01-20T09:00:00Z",
+      "updated_at": "2025-01-23T14:00:00Z"
+    }
+  ],
+  "refacciones_en_recepcion": [],
+  "esperando_tecnico": [],
+  "en_reparacion": [],
+  "listo_para_entrega": [],
+  "garantia": []
+}
+```
+
+**Nota:** Los vehículos pueden aparecer en múltiples grupos si tienen múltiples tags.
+
+---
+
 ## Endpoint de Estadísticas
 
 ### Obtener estadísticas generales
@@ -622,6 +912,42 @@ curl -X POST https://[your-project].supabase.co/functions/v1/api/vehicles/[vehic
 ### Marcar vehículo como entregado
 ```bash
 curl -X POST https://[your-project].supabase.co/functions/v1/api/vehicles/[vehicle-id]/deliver \
+  -H "Content-Type: application/json"
+```
+
+### Agregar refacción a un vehículo
+```bash
+curl -X POST https://[your-project].supabase.co/functions/v1/api/vehicles/[vehicle-id]/parts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Bomba de agua",
+    "oem_part_number": "19200-P2A-000",
+    "supplier": "Proveedor A",
+    "purchase_price": 800.00,
+    "sell_price": 1200.00,
+    "status": "quoted"
+  }'
+```
+
+### Obtener refacciones de un vehículo
+```bash
+curl -X GET https://[your-project].supabase.co/functions/v1/api/vehicles/[vehicle-id]/parts \
+  -H "Content-Type: application/json"
+```
+
+### Actualizar refacción
+```bash
+curl -X PUT https://[your-project].supabase.co/functions/v1/api/vehicles/[vehicle-id]/parts/[part-id] \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "installed",
+    "installed_at": "2025-01-24T11:00:00"
+  }'
+```
+
+### Obtener flujo de trabajo
+```bash
+curl -X GET https://[your-project].supabase.co/functions/v1/api/vehicles/workflow \
   -H "Content-Type: application/json"
 ```
 
@@ -768,6 +1094,69 @@ const response = await fetch(`https://[your-project].supabase.co/functions/v1/ap
 });
 const updatedVehicle = await response.json();
 console.log(updatedVehicle);
+```
+
+### Agregar refacción a un vehículo
+```javascript
+const vehicleId = 'uuid-del-vehiculo';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/vehicles/${vehicleId}/parts`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    description: 'Bomba de agua',
+    oem_part_number: '19200-P2A-000',
+    supplier: 'Proveedor A',
+    purchase_price: 800.00,
+    sell_price: 1200.00,
+    status: 'quoted'
+  })
+});
+const newPart = await response.json();
+console.log(newPart);
+```
+
+### Obtener refacciones de un vehículo
+```javascript
+const vehicleId = 'uuid-del-vehiculo';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/vehicles/${vehicleId}/parts`);
+const parts = await response.json();
+console.log(parts);
+
+// Calcular totales
+const totalPurchase = parts.reduce((sum, part) => sum + (part.purchase_price || 0), 0);
+const totalSell = parts.reduce((sum, part) => sum + (part.sell_price || 0), 0);
+const grossProfit = totalSell - totalPurchase;
+console.log({ totalPurchase, totalSell, grossProfit });
+```
+
+### Actualizar refacción
+```javascript
+const vehicleId = 'uuid-del-vehiculo';
+const partId = 'uuid-de-la-refaccion';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/vehicles/${vehicleId}/parts/${partId}`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    status: 'installed',
+    installed_at: new Date().toISOString()
+  })
+});
+const updatedPart = await response.json();
+console.log(updatedPart);
+```
+
+### Obtener flujo de trabajo del taller
+```javascript
+const response = await fetch('https://[your-project].supabase.co/functions/v1/api/vehicles/workflow');
+const workflow = await response.json();
+
+console.log('Vehículos en diagnóstico:', workflow.en_diagnostico.length);
+console.log('Vehículos esperando refacciones:', workflow.esperando_refacciones.length);
+console.log('Vehículos listos para entrega:', workflow.listo_para_entrega.length);
 ```
 
 ### Crear una nueva cotización
@@ -1719,3 +2108,17 @@ Elimina un proveedor.
     - MANO_DE_OBRA: requiere hours, labor_rate
 
 14. **Búsqueda de cotizaciones**: El parámetro `search` busca en: nombre de cliente, vehículo, folio, placa y VIN.
+
+15. **Gestión de refacciones**: Las refacciones están vinculadas a vehículos y permiten:
+    - Seguimiento completo del ciclo de vida (cotizada → pedida → en tránsito → recibida → instalada)
+    - Control de costos y precios de venta para calcular utilidades
+    - Manejo de números OEM y alternativos para facilitar búsqueda
+    - Registro de fechas clave (pedido, recepción, instalación)
+    - Las refacciones se eliminan automáticamente si se elimina el vehículo (CASCADE)
+
+16. **Flujo de trabajo**: El endpoint `/api/vehicles/workflow` agrupa vehículos por etapa:
+    - Un vehículo puede aparecer en múltiples grupos si tiene múltiples tags
+    - Útil para visualizaciones tipo Kanban
+    - Los grupos son: diagnóstico, aprobación, esperando refacciones, refacciones en recepción, esperando técnico, en reparación, listo para entrega, garantía
+
+17. **Precios de refacciones**: Los campos `supplier_quote`, `purchase_price` y `sell_price` deben ser >= 0. El sistema calcula automáticamente la utilidad bruta: `sell_price - purchase_price`.

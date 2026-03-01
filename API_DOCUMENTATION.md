@@ -625,6 +625,74 @@ curl -X POST https://[your-project].supabase.co/functions/v1/api/vehicles/[vehic
   -H "Content-Type: application/json"
 ```
 
+### Crear una nueva cotización
+```bash
+curl -X POST https://[your-project].supabase.co/functions/v1/api/cotizaciones \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_name": "Juan Pérez",
+    "vehicle": "Toyota Corolla 2020",
+    "customer_contact": "5551234567",
+    "placa": "ABC-123",
+    "vin": "1HGBH41JXMN109186",
+    "notes": "Cotización para mantenimiento mayor"
+  }'
+```
+
+### Obtener cotizaciones
+```bash
+# Todas las cotizaciones
+curl -X GET https://[your-project].supabase.co/functions/v1/api/cotizaciones \
+  -H "Content-Type: application/json"
+
+# Buscar cotizaciones por placa
+curl -X GET "https://[your-project].supabase.co/functions/v1/api/cotizaciones?search=ABC-123" \
+  -H "Content-Type: application/json"
+
+# Cotizaciones aprobadas
+curl -X GET "https://[your-project].supabase.co/functions/v1/api/cotizaciones?status=APPROVED" \
+  -H "Content-Type: application/json"
+```
+
+### Agregar trabajo a cotización
+```bash
+curl -X POST https://[your-project].supabase.co/functions/v1/api/cotizaciones/[cotizacion-id]/trabajos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Mantenimiento Mayor",
+    "description": "Cambio de aceite y filtros"
+  }'
+```
+
+### Agregar partida de refacción
+```bash
+curl -X POST https://[your-project].supabase.co/functions/v1/api/trabajos/[trabajo-id]/partidas \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipo": "REFACCION",
+    "description": "Aceite sintético 5W-30",
+    "quantity": 4,
+    "unit": "LT",
+    "cost": 200.00,
+    "margin_percent": 30,
+    "discount_type": "PERCENT",
+    "discount_value": 10,
+    "tax_percent": 16
+  }'
+```
+
+### Agregar proveedor a partida
+```bash
+curl -X POST https://[your-project].supabase.co/functions/v1/api/partidas/[partida-id]/proveedores \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proveedor": "AutoZone",
+    "costo": 200.00,
+    "is_selected": true,
+    "incluye_iva": true
+  }'
+```
+
 ---
 
 ## Ejemplos de Uso con JavaScript/TypeScript
@@ -702,6 +770,917 @@ const updatedVehicle = await response.json();
 console.log(updatedVehicle);
 ```
 
+### Crear una nueva cotización
+```javascript
+const response = await fetch('https://[your-project].supabase.co/functions/v1/api/cotizaciones', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    customer_name: 'Juan Pérez',
+    vehicle: 'Toyota Corolla 2020',
+    customer_contact: '5551234567',
+    placa: 'ABC-123',
+    vin: '1HGBH41JXMN109186',
+    notes: 'Cotización para mantenimiento mayor'
+  })
+});
+const newCotizacion = await response.json();
+console.log(newCotizacion);
+```
+
+### Obtener cotizaciones con filtros
+```javascript
+// Todas las cotizaciones
+const response = await fetch('https://[your-project].supabase.co/functions/v1/api/cotizaciones');
+const cotizaciones = await response.json();
+
+// Buscar por placa
+const searchResponse = await fetch('https://[your-project].supabase.co/functions/v1/api/cotizaciones?search=ABC-123');
+const searchResults = await searchResponse.json();
+
+// Cotizaciones aprobadas
+const approvedResponse = await fetch('https://[your-project].supabase.co/functions/v1/api/cotizaciones?status=APPROVED');
+const approvedCotizaciones = await approvedResponse.json();
+```
+
+### Obtener cotización completa
+```javascript
+const cotizacionId = 'uuid-de-la-cotizacion';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/cotizaciones/${cotizacionId}`);
+const cotizacion = await response.json();
+console.log(cotizacion);
+// Incluye trabajos, partidas y proveedores
+```
+
+### Agregar trabajo a cotización
+```javascript
+const cotizacionId = 'uuid-de-la-cotizacion';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/cotizaciones/${cotizacionId}/trabajos`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Mantenimiento Mayor',
+    description: 'Cambio de aceite y filtros'
+  })
+});
+const newTrabajo = await response.json();
+console.log(newTrabajo);
+```
+
+### Agregar partida de refacción
+```javascript
+const trabajoId = 'uuid-del-trabajo';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/trabajos/${trabajoId}/partidas`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    tipo: 'REFACCION',
+    description: 'Aceite sintético 5W-30',
+    quantity: 4,
+    unit: 'LT',
+    cost: 200.00,
+    margin_percent: 30,
+    discount_type: 'PERCENT',
+    discount_value: 10,
+    tax_percent: 16
+  })
+});
+const newPartida = await response.json();
+console.log(newPartida);
+```
+
+### Agregar partida de mano de obra
+```javascript
+const trabajoId = 'uuid-del-trabajo';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/trabajos/${trabajoId}/partidas`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    tipo: 'MANO_DE_OBRA',
+    description: 'Cambio de aceite y filtros',
+    hours: 2,
+    labor_rate: 350,
+    discount_type: 'NONE',
+    discount_value: 0,
+    tax_percent: 16
+  })
+});
+const newPartida = await response.json();
+console.log(newPartida);
+```
+
+### Agregar proveedor a partida
+```javascript
+const partidaId = 'uuid-de-la-partida';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/partidas/${partidaId}/proveedores`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    proveedor: 'AutoZone',
+    costo: 200.00,
+    is_selected: true,
+    incluye_iva: true
+  })
+});
+const newProveedor = await response.json();
+console.log(newProveedor);
+```
+
+### Actualizar proveedor
+```javascript
+const proveedorId = 'uuid-del-proveedor';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/proveedores/${proveedorId}`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    costo: 190.00,
+    is_selected: true,
+    incluye_iva: false
+  })
+});
+const updatedProveedor = await response.json();
+console.log(updatedProveedor);
+```
+
+### Duplicar cotización
+```javascript
+const cotizacionId = 'uuid-de-la-cotizacion';
+const response = await fetch(`https://[your-project].supabase.co/functions/v1/api/cotizaciones/${cotizacionId}/duplicate`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    created_by: 'admin'
+  })
+});
+const duplicatedCotizacion = await response.json();
+console.log(duplicatedCotizacion);
+```
+
+---
+
+## Endpoints de Cotizaciones
+
+### 1. Obtener todas las cotizaciones
+
+**GET** `/api/cotizaciones`
+
+Retorna todas las cotizaciones con filtros opcionales.
+
+**Parámetros de consulta opcionales:**
+- `status` (string) - Filtra por estado (DRAFT, SENT, APPROVED, REJECTED, EXPIRED)
+- `search` (string) - Busca por nombre de cliente, vehículo, folio, placa o VIN
+- `from_date` (string, formato YYYY-MM-DD) - Fecha desde
+- `to_date` (string, formato YYYY-MM-DD) - Fecha hasta
+
+**Ejemplos de uso:**
+- `/api/cotizaciones` - Todas las cotizaciones
+- `/api/cotizaciones?status=APPROVED` - Solo cotizaciones aprobadas
+- `/api/cotizaciones?search=Toyota` - Buscar por vehículo
+- `/api/cotizaciones?from_date=2025-01-01&to_date=2025-01-31` - Rango de fechas
+
+**Respuesta exitosa (200):**
+```json
+[
+  {
+    "id": "uuid",
+    "folio": "COT-2025-001",
+    "customer_name": "Juan Pérez",
+    "customer_contact": "5551234567",
+    "vehicle": "Toyota Corolla 2020",
+    "vehicle_id": "uuid",
+    "placa": "ABC-123",
+    "vin": "1HGBH41JXMN109186",
+    "status": "DRAFT",
+    "quote_date": "2025-01-25T10:00:00",
+    "valid_until": "2025-02-01T10:00:00",
+    "subtotal": 5000.00,
+    "total_discount": 500.00,
+    "total_taxes": 720.00,
+    "total": 5220.00,
+    "created_at": "2025-01-25T10:00:00"
+  }
+]
+```
+
+**Posibles valores de status:**
+- `DRAFT` - Borrador
+- `SENT` - Enviada al cliente
+- `APPROVED` - Aprobada
+- `REJECTED` - Rechazada
+- `EXPIRED` - Vencida
+
+---
+
+### 2. Obtener una cotización específica
+
+**GET** `/api/cotizaciones/{id}`
+
+Retorna los detalles completos de una cotización incluyendo trabajos y partidas.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la cotización
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "folio": "COT-2025-001",
+  "customer_name": "Juan Pérez",
+  "customer_contact": "5551234567",
+  "vehicle": "Toyota Corolla 2020",
+  "vehicle_id": "uuid",
+  "placa": "ABC-123",
+  "vin": "1HGBH41JXMN109186",
+  "status": "DRAFT",
+  "quote_date": "2025-01-25T10:00:00",
+  "valid_until": "2025-02-01T10:00:00",
+  "default_parts_margin_percent": 30,
+  "default_labor_rate": 350,
+  "subtotal": 5000.00,
+  "total_discount": 500.00,
+  "total_taxes": 720.00,
+  "total": 5220.00,
+  "notes": "Cotización para mantenimiento mayor",
+  "terms_and_conditions": "Garantía de 6 meses",
+  "created_at": "2025-01-25T10:00:00",
+  "updated_at": "2025-01-25T10:00:00",
+  "created_by": "admin",
+  "trabajos": [
+    {
+      "id": "uuid",
+      "cotizacion_id": "uuid",
+      "name": "Mantenimiento Mayor",
+      "description": "Cambio de aceite y filtros",
+      "sort_order": 0,
+      "subtotal": 3000.00,
+      "total_discount": 300.00,
+      "total_taxes": 432.00,
+      "total": 3132.00,
+      "partidas": [
+        {
+          "id": "uuid",
+          "trabajo_id": "uuid",
+          "tipo": "REFACCION",
+          "description": "Aceite sintético 5W-30",
+          "sort_order": 0,
+          "quantity": 4,
+          "unit": "LT",
+          "cost": 200.00,
+          "margin_percent": 30,
+          "unit_price": 285.71,
+          "discount_type": "PERCENT",
+          "discount_value": 10,
+          "discount_amount": 114.28,
+          "tax_percent": 16,
+          "tax_amount": 163.43,
+          "subtotal": 1142.84,
+          "total": 1191.99,
+          "proveedores": [
+            {
+              "id": "uuid",
+              "proveedor": "AutoZone",
+              "costo": 200.00,
+              "is_selected": true,
+              "incluye_iva": true
+            },
+            {
+              "id": "uuid",
+              "proveedor": "Refaccionaria Central",
+              "costo": 220.00,
+              "is_selected": false,
+              "incluye_iva": false
+            }
+          ]
+        },
+        {
+          "id": "uuid",
+          "trabajo_id": "uuid",
+          "tipo": "MANO_DE_OBRA",
+          "description": "Cambio de aceite y filtros",
+          "sort_order": 1,
+          "quantity": 1,
+          "unit": "SERVICIO",
+          "hours": 2,
+          "labor_rate": 350,
+          "unit_price": 700.00,
+          "discount_type": "NONE",
+          "discount_value": 0,
+          "discount_amount": 0,
+          "tax_percent": 16,
+          "tax_amount": 112.00,
+          "subtotal": 700.00,
+          "total": 812.00,
+          "proveedores": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Respuesta de error (404):**
+```json
+{
+  "error": "Cotización not found"
+}
+```
+
+---
+
+### 3. Crear una nueva cotización
+
+**POST** `/api/cotizaciones`
+
+Crea una nueva cotización.
+
+**Body (JSON):**
+```json
+{
+  "customer_name": "Juan Pérez",
+  "vehicle": "Toyota Corolla 2020",
+  "customer_contact": "5551234567",
+  "vehicle_id": "uuid",
+  "placa": "ABC-123",
+  "vin": "1HGBH41JXMN109186",
+  "quote_date": "2025-01-25T10:00:00",
+  "valid_until": "2025-02-01T10:00:00",
+  "default_parts_margin_percent": 30,
+  "default_labor_rate": 350,
+  "notes": "Cotización para mantenimiento mayor",
+  "terms_and_conditions": "Garantía de 6 meses",
+  "created_by": "admin"
+}
+```
+
+**Campos requeridos:**
+- `customer_name` (string)
+- `vehicle` (string)
+
+**Campos opcionales:**
+- `customer_contact` (string)
+- `vehicle_id` (uuid)
+- `placa` (string)
+- `vin` (string)
+- `quote_date` (string, ISO 8601, default: now)
+- `valid_until` (string, ISO 8601, default: now + 7 days)
+- `default_parts_margin_percent` (number, default: 30)
+- `default_labor_rate` (number, default: 350)
+- `notes` (string)
+- `terms_and_conditions` (string)
+- `created_by` (string)
+
+**Respuesta exitosa (201):**
+```json
+{
+  "id": "uuid-generado",
+  "folio": "COT-2025-001",
+  "customer_name": "Juan Pérez",
+  "customer_contact": "5551234567",
+  "vehicle": "Toyota Corolla 2020",
+  "vehicle_id": "uuid",
+  "placa": "ABC-123",
+  "vin": "1HGBH41JXMN109186",
+  "status": "DRAFT",
+  "quote_date": "2025-01-25T10:00:00",
+  "valid_until": "2025-02-01T10:00:00",
+  "default_parts_margin_percent": 30,
+  "default_labor_rate": 350,
+  "subtotal": 0,
+  "total_discount": 0,
+  "total_taxes": 0,
+  "total": 0,
+  "notes": "Cotización para mantenimiento mayor",
+  "terms_and_conditions": "Garantía de 6 meses",
+  "created_at": "2025-01-25T10:00:00",
+  "created_by": "admin"
+}
+```
+
+---
+
+### 4. Actualizar una cotización
+
+**PUT** `/api/cotizaciones/{id}`
+
+Actualiza una cotización existente.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la cotización
+
+**Body (JSON):** Todos los campos son opcionales
+```json
+{
+  "customer_name": "Juan Pérez",
+  "vehicle": "Toyota Corolla 2020",
+  "customer_contact": "5551234567",
+  "vehicle_id": "uuid",
+  "placa": "ABC-123",
+  "vin": "1HGBH41JXMN109186",
+  "quote_date": "2025-01-25T10:00:00",
+  "valid_until": "2025-02-01T10:00:00",
+  "default_parts_margin_percent": 30,
+  "default_labor_rate": 350,
+  "notes": "Cotización actualizada",
+  "terms_and_conditions": "Garantía de 6 meses"
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "folio": "COT-2025-001",
+  "customer_name": "Juan Pérez",
+  "customer_contact": "5551234567",
+  "vehicle": "Toyota Corolla 2020",
+  "vehicle_id": "uuid",
+  "placa": "ABC-123",
+  "vin": "1HGBH41JXMN109186",
+  "status": "DRAFT",
+  "quote_date": "2025-01-25T10:00:00",
+  "valid_until": "2025-02-01T10:00:00",
+  "default_parts_margin_percent": 30,
+  "default_labor_rate": 350,
+  "subtotal": 5000.00,
+  "total_discount": 500.00,
+  "total_taxes": 720.00,
+  "total": 5220.00,
+  "notes": "Cotización actualizada",
+  "terms_and_conditions": "Garantía de 6 meses",
+  "created_at": "2025-01-25T10:00:00",
+  "updated_at": "2025-01-26T14:00:00",
+  "created_by": "admin"
+}
+```
+
+---
+
+### 5. Eliminar una cotización
+
+**DELETE** `/api/cotizaciones/{id}`
+
+Elimina una cotización.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la cotización
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+### 6. Duplicar una cotización
+
+**POST** `/api/cotizaciones/{id}/duplicate`
+
+Crea una copia de una cotización existente.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la cotización a duplicar
+
+**Body (JSON):**
+```json
+{
+  "created_by": "admin"
+}
+```
+
+**Campos opcionales:**
+- `created_by` (string)
+
+**Respuesta exitosa (201):**
+```json
+{
+  "id": "nuevo-uuid",
+  "folio": "COT-2025-002",
+  "customer_name": "Juan Pérez",
+  "customer_contact": "5551234567",
+  "vehicle": "Toyota Corolla 2020",
+  "vehicle_id": "uuid",
+  "placa": "ABC-123",
+  "vin": "1HGBH41JXMN109186",
+  "status": "DRAFT",
+  "quote_date": "2025-01-26T10:00:00",
+  "valid_until": "2025-02-02T10:00:00",
+  "default_parts_margin_percent": 30,
+  "default_labor_rate": 350,
+  "subtotal": 0,
+  "total_discount": 0,
+  "total_taxes": 0,
+  "total": 0,
+  "notes": "Cotización para mantenimiento mayor",
+  "terms_and_conditions": "Garantía de 6 meses",
+  "created_at": "2025-01-26T10:00:00",
+  "created_by": "admin"
+}
+```
+
+---
+
+### 7. Agregar trabajo a una cotización
+
+**POST** `/api/cotizaciones/{id}/trabajos`
+
+Agrega un nuevo trabajo a una cotización.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la cotización
+
+**Body (JSON):**
+```json
+{
+  "name": "Mantenimiento Mayor",
+  "description": "Cambio de aceite y filtros"
+}
+```
+
+**Campos requeridos:**
+- `name` (string)
+
+**Campos opcionales:**
+- `description` (string)
+
+**Respuesta exitosa (201):**
+```json
+{
+  "id": "uuid-generado",
+  "cotizacion_id": "uuid",
+  "name": "Mantenimiento Mayor",
+  "description": "Cambio de aceite y filtros",
+  "sort_order": 0,
+  "subtotal": 0,
+  "total_discount": 0,
+  "total_taxes": 0,
+  "total": 0
+}
+```
+
+---
+
+## Endpoints de Trabajos
+
+### 1. Actualizar un trabajo
+
+**PUT** `/api/trabajos/{id}`
+
+Actualiza un trabajo existente.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del trabajo
+
+**Body (JSON):** Todos los campos son opcionales
+```json
+{
+  "name": "Mantenimiento Mayor",
+  "description": "Cambio de aceite, filtros y bujías"
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "cotizacion_id": "uuid",
+  "name": "Mantenimiento Mayor",
+  "description": "Cambio de aceite, filtros y bujías",
+  "sort_order": 0,
+  "subtotal": 5000.00,
+  "total_discount": 500.00,
+  "total_taxes": 720.00,
+  "total": 5220.00
+}
+```
+
+---
+
+### 2. Eliminar un trabajo
+
+**DELETE** `/api/trabajos/{id}`
+
+Elimina un trabajo y todas sus partidas.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del trabajo
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+### 3. Agregar partida a un trabajo
+
+**POST** `/api/trabajos/{id}/partidas`
+
+Agrega una nueva partida (refacción o mano de obra) a un trabajo.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del trabajo
+
+**Body para partida tipo REFACCION:**
+```json
+{
+  "tipo": "REFACCION",
+  "description": "Aceite sintético 5W-30",
+  "quantity": 4,
+  "unit": "LT",
+  "cost": 200.00,
+  "margin_percent": 30,
+  "discount_type": "PERCENT",
+  "discount_value": 10,
+  "tax_percent": 16
+}
+```
+
+**Body para partida tipo MANO_DE_OBRA:**
+```json
+{
+  "tipo": "MANO_DE_OBRA",
+  "description": "Cambio de aceite y filtros",
+  "hours": 2,
+  "labor_rate": 350,
+  "discount_type": "NONE",
+  "discount_value": 0,
+  "tax_percent": 16
+}
+```
+
+**Campos requeridos:**
+- `tipo` (string) - "REFACCION" o "MANO_DE_OBRA"
+- `description` (string)
+
+**Campos opcionales para REFACCION:**
+- `quantity` (number, default: 1)
+- `unit` (string, default: "PZA")
+- `cost` (number, default: 0)
+- `margin_percent` (number, default: valor de cotización)
+- `discount_type` (string, default: "NONE")
+- `discount_value` (number, default: 0)
+- `tax_percent` (number, default: 16)
+
+**Campos opcionales para MANO_DE_OBRA:**
+- `hours` (number, default: 1)
+- `labor_rate` (number, default: valor de cotización)
+- `discount_type` (string, default: "NONE")
+- `discount_value` (number, default: 0)
+- `tax_percent` (number, default: 16)
+
+**Tipos de descuento (discount_type):**
+- `NONE` - Sin descuento
+- `PERCENT` - Descuento porcentual
+- `FIXED` - Descuento fijo
+
+**Respuesta exitosa (201):**
+```json
+{
+  "id": "uuid-generado",
+  "trabajo_id": "uuid",
+  "tipo": "REFACCION",
+  "description": "Aceite sintético 5W-30",
+  "sort_order": 0,
+  "quantity": 4,
+  "unit": "LT",
+  "cost": 200.00,
+  "margin_percent": 30,
+  "unit_price": 285.71,
+  "discount_type": "PERCENT",
+  "discount_value": 10,
+  "discount_amount": 114.28,
+  "tax_percent": 16,
+  "tax_amount": 163.43,
+  "subtotal": 1142.84,
+  "total": 1191.99
+}
+```
+
+---
+
+## Endpoints de Partidas
+
+### 1. Actualizar una partida
+
+**PUT** `/api/partidas/{id}`
+
+Actualiza una partida existente.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la partida
+
+**Body para REFACCION (todos los campos opcionales):**
+```json
+{
+  "tipo": "REFACCION",
+  "description": "Aceite sintético 5W-40",
+  "quantity": 5,
+  "unit": "LT",
+  "cost": 220.00,
+  "margin_percent": 35,
+  "discount_type": "PERCENT",
+  "discount_value": 15,
+  "tax_percent": 16
+}
+```
+
+**Body para MANO_DE_OBRA (todos los campos opcionales):**
+```json
+{
+  "tipo": "MANO_DE_OBRA",
+  "description": "Cambio de aceite, filtros y bujías",
+  "hours": 3,
+  "labor_rate": 400,
+  "discount_type": "FIXED",
+  "discount_value": 100,
+  "tax_percent": 16
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "trabajo_id": "uuid",
+  "tipo": "REFACCION",
+  "description": "Aceite sintético 5W-40",
+  "sort_order": 0,
+  "quantity": 5,
+  "unit": "LT",
+  "cost": 220.00,
+  "margin_percent": 35,
+  "unit_price": 338.46,
+  "discount_type": "PERCENT",
+  "discount_value": 15,
+  "discount_amount": 253.85,
+  "tax_percent": 16,
+  "tax_amount": 222.77,
+  "subtotal": 1692.30,
+  "total": 1661.22
+}
+```
+
+---
+
+### 2. Eliminar una partida
+
+**DELETE** `/api/partidas/{id}`
+
+Elimina una partida.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la partida
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+### 3. Obtener proveedores de una partida
+
+**GET** `/api/partidas/{id}/proveedores`
+
+Retorna todos los proveedores de una partida de tipo REFACCION.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la partida
+
+**Respuesta exitosa (200):**
+```json
+[
+  {
+    "id": "uuid",
+    "proveedor": "AutoZone",
+    "costo": 200.00,
+    "is_selected": true,
+    "incluye_iva": true
+  },
+  {
+    "id": "uuid",
+    "proveedor": "Refaccionaria Central",
+    "costo": 220.00,
+    "is_selected": false,
+    "incluye_iva": false
+  }
+]
+```
+
+---
+
+### 4. Agregar proveedor a una partida
+
+**POST** `/api/partidas/{id}/proveedores`
+
+Agrega un nuevo proveedor a una partida de tipo REFACCION.
+
+**Parámetros:**
+- `id` (string, UUID) - ID de la partida
+
+**Body (JSON):**
+```json
+{
+  "proveedor": "AutoZone",
+  "costo": 200.00,
+  "is_selected": true,
+  "incluye_iva": true
+}
+```
+
+**Campos requeridos:**
+- `proveedor` (string) - Nombre del proveedor
+- `costo` (number) - Costo del proveedor
+
+**Campos opcionales:**
+- `is_selected` (boolean, default: false) - Si está seleccionado como proveedor activo
+- `incluye_iva` (boolean, default: true) - Si el costo incluye IVA
+
+**Respuesta exitosa (201):**
+```json
+{
+  "id": "uuid-generado",
+  "partida_id": "uuid",
+  "proveedor": "AutoZone",
+  "costo": 200.00,
+  "is_selected": true,
+  "incluye_iva": true
+}
+```
+
+---
+
+## Endpoints de Proveedores
+
+### 1. Actualizar un proveedor
+
+**PUT** `/api/proveedores/{id}`
+
+Actualiza un proveedor existente.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del proveedor
+
+**Body (JSON):** Todos los campos son opcionales
+```json
+{
+  "proveedor": "AutoZone",
+  "costo": 190.00,
+  "is_selected": true,
+  "incluye_iva": true
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "id": "uuid",
+  "partida_id": "uuid",
+  "proveedor": "AutoZone",
+  "costo": 190.00,
+  "is_selected": true,
+  "incluye_iva": true
+}
+```
+
+---
+
+### 2. Eliminar un proveedor
+
+**DELETE** `/api/proveedores/{id}`
+
+Elimina un proveedor.
+
+**Parámetros:**
+- `id` (string, UUID) - ID del proveedor
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true
+}
+```
+
 ---
 
 ## Notas Importantes
@@ -719,3 +1698,24 @@ console.log(updatedVehicle);
 6. **Timestamps**: `created_at` y `updated_at` son gestionados automáticamente por el sistema.
 
 7. **Conversión de vehículo a cita**: Al convertir un vehículo de vuelta a cita, el vehículo se elimina del taller y se crea una nueva cita con status "Scheduled".
+
+8. **Folios automáticos**: Las cotizaciones generan folios automáticamente en formato COT-YYYY-NNN (ej: COT-2025-001).
+
+9. **Cálculo de márgenes**: Se usa la fórmula de margen real, no markup:
+   - Precio Venta = Costo / (1 - Margen%)
+   - Ejemplo: Costo $100, Margen 30% → $100 / 0.70 = $142.86
+
+10. **IVA en proveedores**: El sistema maneja automáticamente el IVA:
+    - Si el costo incluye IVA: extrae el IVA antes de aplicar margen
+    - Si el costo no incluye IVA: usa el costo directo para calcular margen
+    - Esto evita doble cobro de IVA al cliente
+
+11. **Actualización de totales**: Los totales se calculan automáticamente mediante triggers de base de datos cuando se modifican partidas.
+
+12. **Proveedores múltiples**: Cada partida de refacción puede tener múltiples proveedores. Solo uno puede estar seleccionado a la vez.
+
+13. **Tipos de partida**:
+    - REFACCION: requiere quantity, cost, margin_percent
+    - MANO_DE_OBRA: requiere hours, labor_rate
+
+14. **Búsqueda de cotizaciones**: El parámetro `search` busca en: nombre de cliente, vehículo, folio, placa y VIN.

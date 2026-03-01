@@ -293,6 +293,360 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    if (segments[0] === "cotizaciones") {
+      if (method === "GET" && segments.length === 1) {
+        const status = url.searchParams.get("status");
+        const search = url.searchParams.get("search");
+        const fromDate = url.searchParams.get("from_date");
+        const toDate = url.searchParams.get("to_date");
+
+        const { data, error } = await supabase.rpc("rpc_get_cotizaciones", {
+          p_status: status,
+          p_search: search,
+          p_from_date: fromDate,
+          p_to_date: toDate,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data || []), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "GET" && segments.length === 2 && segments[1] !== "trabajos" && segments[1] !== "partidas") {
+        const { data, error } = await supabase.rpc("rpc_get_cotizacion_by_id", {
+          p_id: segments[1],
+        });
+
+        if (error) throw error;
+        if (!data) {
+          return new Response(JSON.stringify({ error: "Cotización not found" }), {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "POST" && segments.length === 1) {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_create_cotizacion", {
+          p_customer_name: body.customer_name,
+          p_vehicle: body.vehicle,
+          p_customer_contact: body.customer_contact || null,
+          p_vehicle_id: body.vehicle_id || null,
+          p_placa: body.placa || null,
+          p_vin: body.vin || null,
+          p_quote_date: body.quote_date || null,
+          p_valid_until: body.valid_until || null,
+          p_default_parts_margin_percent: body.default_parts_margin_percent || null,
+          p_default_labor_rate: body.default_labor_rate || null,
+          p_notes: body.notes || null,
+          p_terms_and_conditions: body.terms_and_conditions || null,
+          p_created_by: body.created_by || null,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "PUT" && segments.length === 2) {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_update_cotizacion", {
+          p_id: segments[1],
+          p_customer_name: body.customer_name || null,
+          p_vehicle: body.vehicle || null,
+          p_customer_contact: body.customer_contact || null,
+          p_vehicle_id: body.vehicle_id || null,
+          p_placa: body.placa || null,
+          p_vin: body.vin || null,
+          p_quote_date: body.quote_date || null,
+          p_valid_until: body.valid_until || null,
+          p_default_parts_margin_percent: body.default_parts_margin_percent || null,
+          p_default_labor_rate: body.default_labor_rate || null,
+          p_notes: body.notes || null,
+          p_terms_and_conditions: body.terms_and_conditions || null,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "DELETE" && segments.length === 2) {
+        const { error } = await supabase.rpc("rpc_delete_cotizacion", {
+          p_id: segments[1],
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "POST" && segments.length === 3 && segments[2] === "duplicate") {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_duplicate_cotizacion", {
+          p_id: segments[1],
+          p_created_by: body.created_by || null,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "POST" && segments.length === 3 && segments[2] === "trabajos") {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_add_trabajo", {
+          p_cotizacion_id: segments[1],
+          p_name: body.name,
+          p_description: body.description || null,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "GET" && segments.length === 4 && segments[2] === "partidas" && segments[3] === "proveedores") {
+        const { data, error } = await supabase.rpc("rpc_get_partida_proveedores", {
+          p_partida_id: segments[1],
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data || []), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "POST" && segments[0] === "cotizaciones" && segments.length >= 4 && segments[2] === "partidas" && segments[3] === "proveedores") {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_add_partida_proveedor", {
+          p_partida_id: segments[1],
+          p_proveedor: body.proveedor,
+          p_costo: body.costo,
+          p_is_selected: body.is_selected || false,
+          p_incluye_iva: body.incluye_iva !== undefined ? body.incluye_iva : true,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    if (segments[0] === "trabajos") {
+      if (method === "PUT" && segments.length === 2) {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_update_trabajo", {
+          p_id: segments[1],
+          p_name: body.name || null,
+          p_description: body.description || null,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "DELETE" && segments.length === 2) {
+        const { error } = await supabase.rpc("rpc_delete_trabajo", {
+          p_id: segments[1],
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "POST" && segments.length === 3 && segments[2] === "partidas") {
+        const body = await req.json();
+
+        if (body.tipo === "REFACCION") {
+          const { data, error } = await supabase.rpc("rpc_add_partida_refaccion", {
+            p_trabajo_id: segments[1],
+            p_description: body.description,
+            p_quantity: body.quantity,
+            p_unit: body.unit || "PZA",
+            p_cost: body.cost || 0,
+            p_margin_percent: body.margin_percent || null,
+            p_discount_type: body.discount_type || "NONE",
+            p_discount_value: body.discount_value || 0,
+            p_tax_percent: body.tax_percent || null,
+          });
+
+          if (error) throw error;
+
+          return new Response(JSON.stringify(data), {
+            status: 201,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } else if (body.tipo === "MANO_DE_OBRA") {
+          const { data, error } = await supabase.rpc("rpc_add_partida_mano_obra", {
+            p_trabajo_id: segments[1],
+            p_description: body.description,
+            p_hours: body.hours || 1,
+            p_labor_rate: body.labor_rate || null,
+            p_discount_type: body.discount_type || "NONE",
+            p_discount_value: body.discount_value || 0,
+            p_tax_percent: body.tax_percent || null,
+          });
+
+          if (error) throw error;
+
+          return new Response(JSON.stringify(data), {
+            status: 201,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } else {
+          throw new Error("tipo must be REFACCION or MANO_DE_OBRA");
+        }
+      }
+    }
+
+    if (segments[0] === "partidas") {
+      if (method === "PUT" && segments.length === 2) {
+        const body = await req.json();
+
+        if (body.tipo === "REFACCION") {
+          const { data, error } = await supabase.rpc("rpc_update_partida_refaccion", {
+            p_id: segments[1],
+            p_description: body.description || null,
+            p_quantity: body.quantity || null,
+            p_unit: body.unit || null,
+            p_cost: body.cost || null,
+            p_margin_percent: body.margin_percent || null,
+            p_discount_type: body.discount_type || null,
+            p_discount_value: body.discount_value || null,
+            p_tax_percent: body.tax_percent || null,
+          });
+
+          if (error) throw error;
+
+          return new Response(JSON.stringify(data), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } else if (body.tipo === "MANO_DE_OBRA") {
+          const { data, error } = await supabase.rpc("rpc_update_partida_mano_obra", {
+            p_id: segments[1],
+            p_description: body.description || null,
+            p_hours: body.hours || null,
+            p_labor_rate: body.labor_rate || null,
+            p_discount_type: body.discount_type || null,
+            p_discount_value: body.discount_value || null,
+            p_tax_percent: body.tax_percent || null,
+          });
+
+          if (error) throw error;
+
+          return new Response(JSON.stringify(data), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } else {
+          throw new Error("tipo must be REFACCION or MANO_DE_OBRA");
+        }
+      }
+
+      if (method === "DELETE" && segments.length === 2) {
+        const { error } = await supabase.rpc("rpc_delete_partida", {
+          p_id: segments[1],
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "GET" && segments.length === 3 && segments[2] === "proveedores") {
+        const { data, error } = await supabase.rpc("rpc_get_partida_proveedores", {
+          p_partida_id: segments[1],
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data || []), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "POST" && segments.length === 3 && segments[2] === "proveedores") {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_add_partida_proveedor", {
+          p_partida_id: segments[1],
+          p_proveedor: body.proveedor,
+          p_costo: body.costo,
+          p_is_selected: body.is_selected || false,
+          p_incluye_iva: body.incluye_iva !== undefined ? body.incluye_iva : true,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          status: 201,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    if (segments[0] === "proveedores") {
+      if (method === "PUT" && segments.length === 2) {
+        const body = await req.json();
+        const { data, error } = await supabase.rpc("rpc_update_partida_proveedor", {
+          p_id: segments[1],
+          p_proveedor: body.proveedor || null,
+          p_costo: body.costo || null,
+          p_is_selected: body.is_selected || null,
+          p_incluye_iva: body.incluye_iva || null,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (method === "DELETE" && segments.length === 2) {
+        const { error } = await supabase.rpc("rpc_delete_partida_proveedor", {
+          p_id: segments[1],
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     if (segments[0] === "stats") {
       if (method === "GET" && segments.length === 1) {
         const [appointmentsResult, vehiclesResult, deliveredResult] = await Promise.all([

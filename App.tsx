@@ -10,6 +10,7 @@ import DayView from './components/DayView';
 import TagCompletionModal from './components/TagCompletionModal';
 import VehiclesInShop from './components/VehiclesInShop';
 import VehiclesTableView from './components/VehiclesTableView';
+import { WorkflowView } from './components/WorkflowView';
 import { PlusIcon } from './components/icons/PlusIcon';
 import { CalendarIcon } from './components/icons/CalendarIcon';
 import { ListBulletIcon } from './components/icons/ListBulletIcon';
@@ -17,7 +18,7 @@ import { ClockIcon } from './components/icons/ClockIcon';
 import * as apiService from './services/apiService';
 import { createVehicleInShop } from './services/vehiclesService';
 
-type ViewMode = 'list' | 'calendar' | 'day' | 'shop' | 'shopTable';
+type ViewMode = 'list' | 'calendar' | 'day' | 'shop' | 'shopTable' | 'workflow';
 
 const App: React.FC = () => {
   const getTodayDate = () => {
@@ -268,7 +269,8 @@ const App: React.FC = () => {
       <main className="container mx-auto p-4 md:p-8">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
             <h1 className="text-3xl md:text-4xl font-bold text-brand-blue">
-              {viewMode === 'shop' || viewMode === 'shopTable' ? 'Vehículos en Taller' : 'Panel de Citas'}
+              {viewMode === 'shop' || viewMode === 'shopTable' ? 'Vehículos en Taller' :
+               viewMode === 'workflow' ? 'Flujo de Trabajo' : 'Panel de Citas'}
             </h1>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <button
@@ -342,6 +344,19 @@ const App: React.FC = () => {
                       <line x1="9" y1="21" x2="9" y2="9"/>
                     </svg>
                     </button>
+                    <button
+                    onClick={() => setViewMode('workflow')}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === 'workflow' ? 'bg-white text-brand-blue shadow' : 'text-gray-600 hover:bg-gray-300'}`}
+                    aria-label="Flujo de trabajo"
+                    title="Flujo de trabajo"
+                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="14" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -399,13 +414,15 @@ const App: React.FC = () => {
           <DayView appointments={appointments} onEditAppointment={handleEditAppointment} />
         ) : viewMode === 'shop' ? (
           <VehiclesInShop />
-        ) : (
+        ) : viewMode === 'shopTable' ? (
           <VehiclesTableView />
-        )}
+        ) : viewMode === 'workflow' ? (
+          <WorkflowView />
+        ) : null}
 
       </main>
 
-      {viewMode !== 'shop' && viewMode !== 'shopTable' && (
+      {viewMode !== 'shop' && viewMode !== 'shopTable' && viewMode !== 'workflow' && (
         <button
           onClick={openAddModal}
           className="fixed bottom-8 right-8 bg-brand-blue hover:bg-brand-blue-dark text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"

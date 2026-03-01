@@ -71,3 +71,62 @@ export interface VehicleInShop {
   laborHours?: number;
   folio?: string;
 }
+
+export type PartStatus =
+  | 'quoted'
+  | 'ordered'
+  | 'in_transit'
+  | 'received'
+  | 'installed'
+  | 'returned'
+  | 'canceled';
+
+export const PART_STATUSES: PartStatus[] = [
+  'quoted',
+  'ordered',
+  'in_transit',
+  'received',
+  'installed',
+  'returned',
+  'canceled',
+];
+
+export const PART_STATUS_LABELS: Record<PartStatus, string> = {
+  quoted: 'Cotizada',
+  ordered: 'Pedida',
+  in_transit: 'En tránsito',
+  received: 'Recibida',
+  installed: 'Instalada',
+  returned: 'Devuelta',
+  canceled: 'Cancelada',
+};
+
+export interface Part {
+  id: string;
+  vehicleId: string;
+  description: string;
+  oemPartNumber?: string;
+  alternativePartNumbers?: string[];
+  supplier?: string;
+  supplierQuote?: number;
+  purchasePrice?: number;
+  sellPrice?: number;
+  status: PartStatus;
+  orderedAt?: string;
+  receivedAt?: string;
+  installedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkflowData {
+  en_diagnostico: VehicleInShop[];
+  esperando_aprobacion: VehicleInShop[];
+  esperando_refacciones: VehicleInShop[];
+  refacciones_en_recepcion: VehicleInShop[];
+  esperando_tecnico: VehicleInShop[];
+  en_reparacion: VehicleInShop[];
+  listo_para_entrega: VehicleInShop[];
+  garantia: VehicleInShop[];
+}

@@ -7,6 +7,7 @@ import { PencilIcon } from './icons/PencilIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { CheckIcon } from './icons/CheckIcon';
 import Modal from './Modal';
+import { VehicleDetailModal } from './VehicleDetailModal';
 
 const TAG_COLORS: Record<VehicleInShopTag, string> = {
   'esperando refacciones': 'bg-orange-100 text-orange-800 border-orange-300',
@@ -23,6 +24,8 @@ const VehiclesInShop: React.FC = () => {
   const [vehicles, setVehicles] = useState<VehicleInShop[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<VehicleInShop | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleInShop | null>(null);
   const [formData, setFormData] = useState({
     customerName: '',
     vehicle: '',
@@ -89,6 +92,16 @@ const VehiclesInShop: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingVehicle(null);
+  };
+
+  const handleOpenDetailModal = (vehicle: VehicleInShop) => {
+    setSelectedVehicle(vehicle);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedVehicle(null);
   };
 
   const handleSave = async () => {
@@ -363,10 +376,27 @@ const VehiclesInShop: React.FC = () => {
                     <span className="text-gray-700 font-medium">{vehicle.contact}</span>
                   </div>
                 </div>
+
+                <div className="mt-3">
+                  <button
+                    onClick={() => handleOpenDetailModal(vehicle)}
+                    className="w-full py-2 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Ver Detalles y Refacciones
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {selectedVehicle && (
+        <VehicleDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={handleCloseDetailModal}
+          vehicle={selectedVehicle}
+        />
       )}
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingVehicle ? 'Editar Vehículo' : 'Agregar Vehículo'}>
